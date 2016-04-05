@@ -1,0 +1,308 @@
+/* Default site styles. */
+
+div#bodyContent {
+  padding: 1.5%;
+  font-size: 1.1em;
+}
+
+/*for centering the page on high resolution screens*/
+div#middle, div#top, div#bottom {
+	text-align: center;
+}
+
+div#footer, div#header, div#body {
+	//required @layout. optional @layoutMax, @layoutMin for @layout = fluid. optional @layoutWidth for @layout = fixed.
+	//.layoutInner(@layout);//fixed or fluid with defaults.
+	.layoutInner(@layout, @layoutMax, @layoutMin);//fluid with named params
+	//.layoutInner(@layout, @layoutWidth);//fixed with named param
+	//position:relative; //removing fixes the ie7 bugs where the dropdown appears below body content and the shifting logo. haven't seen any side effects yet.
+	margin: 0 auto;
+	text-align: left;
+}
+
+html, body, div#container, div#top, div#middle, div#bottom {
+	//required @layout. optional @layoutMin for @layout = fluid. optional @layoutWidth for @layout = fixed.
+	//.layoutOuter(@layout);//fixed or fluid with defaults.
+	.layoutOuter(@layout, @layoutMin);//fluid with named param
+	//.layoutOuter(@layout, @layoutWidth);//fixed with named param
+}
+
+/*
+div#top {
+	@shadow: 0 8px 3px -7px rgba(0, 0, 0, 0.25), 0 -1px 0 rgba(0, 0, 0, 0.1) inset;
+	.box-shadow(@shadow);
+}
+*/
+
+/* Don't need these styles for fixed header */
+div#middle {
+	@shadow: 0 8px 3px -7px rgba(0, 0, 0, 0.25) inset;
+    .box-shadow(@shadow);
+}
+
+/* site styles */
+
+html, body {
+	background-color: @backgroundColor;
+	font-size: @baseFontSize;
+	font-family: @baseFontFamily;
+}
+
+a { text-decoration:none; color: @linkColor; }
+a:hover { text-decoration:underline; cursor:pointer; }
+
+/* header styles */
+
+div#top {
+	//.gradient(#2E2E2E, #666666, #1D1D1D);// comment out this line if using a fixed header.
+	/* simulated drop shadow for ie 7 & 8 */
+	   border-bottom: 0px solid #9a9a9a;
+	  *border-bottom-width: 2px; /* for ie 7 */
+	  border-bottom-width: ~"2px\0/"; /* for ie 8 */
+	div#header {
+		img { margin: @headerImgMargin }
+		img, h1 { vertical-align: middle }
+		h1 {
+		    display: inline;
+        margin-left: 1%;
+		    margin-right: 3%;
+		    color: #E5E5E5;
+		    font-family: @sansFontFamily;//'DroidSansRegular', Arial, Helvetica, sans-serif;
+		    font-size: 1.6em;
+        line-height: 2em;
+        }
+    }
+}
+
+/* fixed header */
+
+div#top {
+  .gradient_no_ie6n7(#2E2E2E, #666666, #1D1D1D);
+	@shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    .box-shadow(@shadow);
+    position:fixed;
+    top:0;
+    right:0;
+    left:0;
+    z-index: @zindexFixedNavbar;
+}
+
+div#middle {
+    padding-top: @headerHeight;    
+}
+
+/* nav styles */
+
+div#nav, div#nav > ul, div#nav > ul > li, div#nav > ul > li > a {
+	.inlineblock();
+}
+
+div#nav {
+	vertical-align: bottom;
+	background-color: #666666;
+	border-left: 1px solid #1d1d1d;
+	border-right: 1px solid #1d1d1d;
+	border-top: 1px solid #1d1d1d;
+}
+
+div#nav > ul > li > a {
+	padding: .55em .8em .55em .8em;
+	text-decoration: none;
+	color: #F3F3F3;
+	cursor: pointer;
+}
+
+div#nav > ul > li > a:hover, div#nav > ul > li > a:focus {
+	background-color: #737373;
+	color: #FFFFFF;
+	
+}
+
+/* logout section */
+
+.logout {
+  color: #E5E5E5;
+  a { color: #99CCFF; font-size: .9em; }
+  padding: .2em .75em .2em .4em;
+  font-size: .95em;
+}
+
+/* footer styles */
+
+div#bottom {
+	line-height:@footerHeight; /*vertically centers the text*/
+	border-top: 2px solid #9a9a9a;
+	background-color: #2e2e2e;
+	
+	div#footer {
+    color: #E5E5E5;
+    font-size: .9em;
+    overflow: auto;
+    background-color: #2e2e2e;
+		
+		a { color: #99CCFF; }
+    
+    //@media screen and (min-width: 614px) {
+      div#footerLeftCont {
+        float: left;
+        width:100%;
+
+        div#footerLeft {
+          margin-right:21.2em;
+          text-align:center;
+          overflow: hidden;
+        }
+      }
+
+      div#footerRight {
+        float:left;
+        width:21.2em;
+        margin-left:-21.2em;
+      }
+    //}
+
+    div#footerRight {
+			a {
+			    display:block;
+			    color: #E5E5E5;
+				&:hover {
+				    text-decoration:none;
+				    color: #FFFFFF;
+				}
+				//&:focus { outline: none; }
+				//&:active { outline: none; }
+				
+				span {
+				    .inlineblock(); 
+				    width: 2.455em;
+				    height:2.455em;
+				    overflow:hidden;
+				    vertical-align:middle;
+				    margin-right: 5px;
+				}
+			}
+		}
+    }
+}
+
+div#footerRight a:hover span img, div#footerRight a:focus span img {
+    margin-left: -2.455em;
+}
+
+/*keep footer at the bottom of short length pages*/
+html, body {
+	height:100%;
+}
+
+div#container {
+	//height: ~"expression(this.height < 100% ? 100%: true)"; // causes an error in ie7.
+	min-height:100%;
+	position:relative;
+}
+
+div#middle {
+	padding-bottom: @footerHeight;
+}
+
+div#bottom {
+  width:100%;
+  height:@footerHeight;
+  position:absolute;
+  bottom:0;
+  /* fixed footer */
+  /*
+  position:fixed;
+  bottom:0;
+  right:0;
+  left:0;
+  */
+  //z-index:2;
+
+}
+
+/* responsive styles */
+
+.mobile-navicon { display:none }
+/*
+@media screen and (max-width: 1033px) { //and (min-width: 614px)
+  div#middle {
+    padding-top: @headerHeight + 2.665em;
+  }
+}
+*/
+/*
+@media screen and (max-width: 613px) {
+  body{-webkit-text-size-adjust:none}
+  
+  .logout {
+    display: none;
+  }
+
+  .mobile-navicon {
+    .inlineblock();
+    margin-left: .5em;
+  }
+
+  .mobile-navicon a {
+    padding:10px;
+  }
+
+  div#nav, div#nav ul, div#nav ul li, div#nav ul li a {
+    display:block;
+  }
+
+  div#nav {
+    display: none;
+  }
+
+  div#nav ul li a {
+    border-bottom:1px solid #252525;
+  }
+}
+*/
+
+/* mixins */
+
+.layoutInner(fluid, @max: none, @min: none) {
+    .maxminWidth(@max, @min);
+}
+
+.layoutInner(fixed, @width: 1280px) {
+    width: @width;
+}
+
+.layoutOuter(fluid, @min: none) {
+    .minWidth(@min);
+}
+
+.layoutOuter(fixed, @min: 1280px) { 
+    .minWidth(@min);
+}
+
+/* GMail like scrollbars for Webkit-based browsers */
+
+::-webkit-scrollbar{
+    width:10px;
+    height:10px;
+    background-color: @backgroundColor;
+}
+::-webkit-scrollbar:hover{
+    background-color: darken(@backgroundColor, 3%);
+    box-shadow: inset 1px 1px 0 rgba(0,0,0,.1),inset -1px -1px 0 rgba(0,0,0,.07);
+}
+
+::-webkit-scrollbar:active{
+    box-shadow: inset 1px 1px 0 rgba(0,0,0,.15),inset -1px -1px 0 rgba(0,0,0,.12);
+}
+
+::-webkit-scrollbar-thumb{
+    min-height:0.8em;
+    min-width:0.8em;
+    background-color: rgba(0, 0, 0, .2);
+}
+::-webkit-scrollbar-thumb:hover{
+    background-color: #aaa;
+}
+::-webkit-scrollbar-thumb:active{
+    background-color:#888;
+}

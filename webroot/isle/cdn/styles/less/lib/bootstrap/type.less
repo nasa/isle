@@ -1,0 +1,56 @@
+// HEADINGS
+// --------
+#bodyContent {
+  
+  h1, h2, h3, h4, h5, h6 {
+    //margin: 0;
+    font-family: @headingsFontFamily;
+    font-weight: @headingsFontWeight;
+    color: @headingsColor;
+    text-rendering: optimizelegibility; // Fix the character spacing for headings
+    small {
+      font-weight: normal;
+      color: @grayLight;
+    }
+  }
+  h1 {
+    font-size: 30px;
+    line-height: @baseLineHeight * 2;
+    small {
+      font-size: 18px;
+    }
+  }
+  h2 {
+    font-size: 1.2em;
+    //line-height: @baseLineHeight * 2;
+    margin-bottom: .8em; // added by bjr
+    small {
+      font-size: 18px;
+    }
+  }
+  h3 {
+    small {
+      font-size: 14px;
+    }
+    font-size: 1.2em;
+    line-height: @baseLineHeight * 1.5;
+  }
+  h4, h5, h6 {
+    line-height: @baseLineHeight * 1.5;
+  }
+  h4 {
+    font-size: 1.05em;
+    small {
+      font-size: 12px;
+    }
+  }
+  h5 {
+    font-size: 12px;
+  }
+  h6 {
+    font-size: 11px;
+    color: @grayLight;
+    text-transform: uppercase;
+  }
+  
+}

@@ -1,0 +1,8 @@
+.DS_Store
+.bash_history
+.dropbox
+.dropbox-master
+Thumbs.db
+._*
+.idea
+.vagrant

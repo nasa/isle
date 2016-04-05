@@ -1,0 +1,353 @@
+// Derived from code on Twitter Bootstrap (http://twitter.github.com/bootstrap/)
+/* mixins */
+
+// Clearfix
+// --------
+// For clearing floats like a boss h5bp.com/q
+.clearfix() {
+  *zoom: 1;
+  &:before,
+  &:after {
+    display: table;
+    content: "";
+  }
+  &:after {
+    clear: both;
+  }
+}
+
+.gradient(@color: #F5F5F5, @start: #EEE, @stop: #FFF) {
+  background: @color; /* for non-css3 browsers */
+  background: -moz-linear-gradient(top, @start, @stop); /* FF 3.6+ */
+  background: -ms-linear-gradient(top, @start, @stop); /* IE10 */
+  background: -webkit-gradient(linear,
+                               left top,
+                               left bottom,
+                               color-stop(0, @start),
+                               color-stop(1, @stop)); /* Safari 4+, Chrome 2+ */
+  background: -webkit-linear-gradient(top, @start, @stop); /* Safari 5.1+, Chrome 10+ */
+  background: -o-linear-gradient(top, @start, @stop); /* Opera 11.10 */
+  /* IE6 & 7 may not applying the gradient if the element does not have layout. hasLayout can be made true by adding zoom:1, which is an IE property and ignored by other browsers. */
+  zoom:1;
+  filter: ~"progid:DXImageTransform.Microsoft.gradient(startColorStr='@{start}', endColorStr='@{stop}')"; /* IE6 & IE7  */ /* this breaks dropdowns when header is fixed */
+  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorStr='@{start}', endColorStr='@{stop}')"; /* IE8+  */
+  background: linear-gradient(top, @start, @stop); /* the standard */
+}
+
+.gradient_no_ie6n7(@color: #F5F5F5, @start: #EEE, @stop: #FFF) {
+  background: @color; /* for non-css3 browsers */
+  background: -moz-linear-gradient(top, @start, @stop); /* FF 3.6+ */
+  background: -ms-linear-gradient(top, @start, @stop); /* IE10 */
+  background: -webkit-gradient(linear,
+                               left top,
+                               left bottom,
+                               color-stop(0, @start),
+                               color-stop(1, @stop)); /* Safari 4+, Chrome 2+ */
+  background: -webkit-linear-gradient(top, @start, @stop); /* Safari 5.1+, Chrome 10+ */
+  background: -o-linear-gradient(top, @start, @stop); /* Opera 11.10 */
+  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorStr='@{start}', endColorStr='@{stop}')"; /* IE8+  */
+  background: linear-gradient(top, @start, @stop); /* the standard */
+}
+
+// Border Radius
+.border-radius(@radius: 5px) {
+  -webkit-border-radius: @radius;
+     -moz-border-radius: @radius;
+          border-radius: @radius;
+}
+
+// Drop shadows
+.box-shadow(@shadow: 0 1px 3px rgba(0,0,0,.25)) {
+  -webkit-box-shadow: @shadow;
+     -moz-box-shadow: @shadow;
+          box-shadow: @shadow;
+}
+
+// Opacity
+.opacity(@opacity: 100) {
+  opacity: @opacity / 100;
+   filter: e(%("alpha(opacity=%d)", @opacity));
+}
+
+// Webkit-style focus
+// ------------------
+.tab-focus() {
+  // Default
+  outline: thin dotted;
+  // Webkit
+  outline: 3px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+
+// Transitions
+.transition(@transition) {
+  -webkit-transition: @transition;
+     -moz-transition: @transition;
+      -ms-transition: @transition;
+       -o-transition: @transition;
+          transition: @transition;
+}
+
+.box-sizing(@box) {
+    -webkit-box-sizing: @box;
+    -moz-box-sizing: @box;
+    box-sizing: @box;
+}
+
+.inlineblock() {
+    display:inline-block;
+    /* fix for IE 7 and below unsupport for inline-block */
+    zoom: 1;
+    *display: inline;
+}
+
+// IE7 likes to collapse whitespace on either side of the inline-block elements.
+// Ems because we're attempting to match the width of a space character. Left
+// version is for form buttons, which typically come after other elements, and
+// right version is for icons, which come before. Applying both is ok, but it will
+// mean that space between those elements will be .6em (~2 space characters) in IE7,
+// instead of the 1 space in other browsers.
+.ie7-restore-left-whitespace() {
+  *margin-left: .3em;
+
+  &:first-child {
+    *margin-left: 0;
+  }
+}
+
+.ie7-restore-right-whitespace() {
+  *margin-right: .3em;
+
+  &:last-child {
+    *margin-left: 0;
+  }
+}
+
+// Gradient Bar Colors for buttons and alerts
+.gradientBar(@primaryColor, @secondaryColor) {
+  #gradient > .vertical(@primaryColor, @secondaryColor);
+  border-color: @secondaryColor @secondaryColor darken(@secondaryColor, 15%);
+  border-color: rgba(0,0,0,.1) rgba(0,0,0,.1) fadein(rgba(0,0,0,.1), 15%);
+}
+
+// Gradients
+#gradient {
+  .horizontal(@startColor: #555, @endColor: #333) {
+    background-color: @endColor;
+    background-image: -moz-linear-gradient(left, @startColor, @endColor); // FF 3.6+
+    background-image: -ms-linear-gradient(left, @startColor, @endColor); // IE10
+    background-image: -webkit-gradient(linear, 0 0, 100% 0, from(@startColor), to(@endColor)); // Safari 4+, Chrome 2+
+    background-image: -webkit-linear-gradient(left, @startColor, @endColor); // Safari 5.1+, Chrome 10+
+    background-image: -o-linear-gradient(left, @startColor, @endColor); // Opera 11.10
+    background-image: linear-gradient(left, @startColor, @endColor); // Le standard
+    background-repeat: repeat-x;
+    filter: e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=1)",@startColor,@endColor)); // IE9 and down
+  }
+  .vertical(@startColor: #555, @endColor: #333) {
+    background-color: mix(@startColor, @endColor, 60%);
+    background-image: -moz-linear-gradient(top, @startColor, @endColor); // FF 3.6+
+    background-image: -ms-linear-gradient(top, @startColor, @endColor); // IE10
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(@startColor), to(@endColor)); // Safari 4+, Chrome 2+
+    background-image: -webkit-linear-gradient(top, @startColor, @endColor); // Safari 5.1+, Chrome 10+
+    background-image: -o-linear-gradient(top, @startColor, @endColor); // Opera 11.10
+    background-image: linear-gradient(top, @startColor, @endColor); // The standard
+    background-repeat: repeat-x;
+    filter: e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0)",@startColor,@endColor)); // IE9 and down
+  }
+  .directional(@startColor: #555, @endColor: #333, @deg: 45deg) {
+    background-color: @endColor;
+    background-repeat: repeat-x;
+    background-image: -moz-linear-gradient(@deg, @startColor, @endColor); // FF 3.6+
+    background-image: -ms-linear-gradient(@deg, @startColor, @endColor); // IE10
+    background-image: -webkit-linear-gradient(@deg, @startColor, @endColor); // Safari 5.1+, Chrome 10+
+    background-image: -o-linear-gradient(@deg, @startColor, @endColor); // Opera 11.10
+    background-image: linear-gradient(@deg, @startColor, @endColor); // The standard
+  }
+  .vertical-three-colors(@startColor: #00b3ee, @midColor: #7a43b6, @colorStop: 50%, @endColor: #c3325f) {
+    background-color: mix(@midColor, @endColor, 80%);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(@startColor), color-stop(@colorStop, @midColor), to(@endColor));
+    background-image: -webkit-linear-gradient(@startColor, @midColor @colorStop, @endColor);
+    background-image: -moz-linear-gradient(top, @startColor, @midColor @colorStop, @endColor);
+    background-image: -ms-linear-gradient(@startColor, @midColor @colorStop, @endColor);
+    background-image: -o-linear-gradient(@startColor, @midColor @colorStop, @endColor);
+    background-image: linear-gradient(@startColor, @midColor @colorStop, @endColor);
+    background-repeat: no-repeat;
+    filter: e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0)",@startColor,@endColor)); // IE9 and down, gets no color-stop at all for proper fallback
+  }
+  .radial(@innerColor: #555, @outerColor: #333)  {
+    background-color: @outerColor;
+    background-image: -webkit-gradient(radial, center center, 0, center center, 460, from(@innerColor), to(@outerColor));
+    background-image: -webkit-radial-gradient(circle, @innerColor, @outerColor);
+    background-image: -moz-radial-gradient(circle, @innerColor, @outerColor);
+    background-image: -ms-radial-gradient(circle, @innerColor, @outerColor);
+    background-repeat: no-repeat;
+    // Opera cannot do radial gradients yet
+  }
+  .striped(@color, @angle: -45deg) {
+    background-color: @color;
+    background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(.25, rgba(255,255,255,.15)), color-stop(.25, transparent), color-stop(.5, transparent), color-stop(.5, rgba(255,255,255,.15)), color-stop(.75, rgba(255,255,255,.15)), color-stop(.75, transparent), to(transparent));
+    background-image: -webkit-linear-gradient(@angle, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
+    background-image: -moz-linear-gradient(@angle, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
+    background-image: -ms-linear-gradient(@angle, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
+    background-image: -o-linear-gradient(@angle, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
+    background-image: linear-gradient(@angle, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
+  }
+}
+// Reset filters for IE
+.reset-filter() {
+  filter: e(%("progid:DXImageTransform.Microsoft.gradient(enabled = false)"));
+}
+
+
+// Mixin for generating button backgrounds
+// ---------------------------------------
+.buttonBackground(@startColor, @endColor) {
+  // gradientBar will set the background to a pleasing blend of these, to support IE<=9
+  .gradientBar(@startColor, @endColor);
+  *background-color: @endColor; /* Darken IE7 buttons by default so they stand out more given they won't have borders */
+  .reset-filter();
+
+  // in these cases the gradient won't cover the background, so we override
+  &:hover, &:active, &.active, &.disabled, &[disabled] {
+    background-color: @endColor;
+    *background-color: darken(@endColor, 5%);
+  }
+
+  // IE 7 + 8 can't handle box-shadow to show active, so we darken a bit ourselves
+  &:active,
+  &.active {
+    background-color: darken(@endColor, 10%) e("\9");
+  }
+}
+
+.maxminWidth(@max, @min) when not (@max = none) and not (@min = none) {
+    width: ~"expression(this.width > @{max} ? '@{max}@{layoutUnit}': (this.width < @{min} ? '@{min}@{layoutUnit}': 'auto'))";
+    max-width: ~"@{max}@{layoutUnit}";
+    min-width: ~"@{min}@{layoutUnit}";
+}
+
+.maxminWidth(@max, @min) { }
+
+.minWidth(@min) when not (@min = none) {
+    width: ~"expression(this.width < @{min} ? '@{min}@{layoutUnit}': 'auto')";
+    min-width: ~"@{min}@{layoutUnit}";
+}
+
+.minWidth(@min) { }
+
+.maxWidth(@max) {
+    width: ~"expression(this.width > @{max} ? '@{max}@{layoutUnit}': 'auto')";
+    max-width: ~"@{max}@{layoutUnit}";
+}
+
+// Le grid system
+// -------------------------
+#gridSystem {
+  // Setup the mixins to be used
+  .columns(@gridGutterWidth, @gridColumnWidth, @gridRowWidth, @columns) {
+    width: (@gridColumnWidth * @columns) + (@gridGutterWidth * (@columns - 1));
+  } 
+  .offset(@gridColumnWidth, @gridGutterWidth, @columns) {
+    margin-left: (@gridColumnWidth * @columns) + (@gridGutterWidth * (@columns - 1)) + (@gridGutterWidth * 2);
+  }
+  .gridColumn(@gridGutterWidth) {
+    float: left;
+    margin-left: @gridGutterWidth;
+  }
+  // Take these values and mixins, and make 'em do their thang
+  .generate(@gridColumns, @gridColumnWidth, @gridGutterWidth) {
+    // Row surrounds the columns
+    .row {
+      margin-left: @gridGutterWidth * -1;
+      .clearfix();
+    }
+    // Find all .span# classes within .row and give them the necessary properties for grid columns (supported by all browsers back to IE7, thanks @dhg)
+    [class*="span"] {
+      #gridSystem > .gridColumn(@gridGutterWidth);
+    }
+    // Default columns
+    .span1     { #gridSystem > .columns(@gridGutterWidth, @gridColumnWidth, @gridRowWidth, 1); }
+    .span2     { #gridSystem > .columns(@gridGutterWidth, @gridColumnWidth, @gridRowWidth, 2); }
+    .span3     { #gridSystem > .columns(@gridGutterWidth, @gridColumnWidth, @gridRowWidth, 3); }
+    .span4     { #gridSystem > .columns(@gridGutterWidth, @gridColumnWidth, @gridRowWidth, 4); }
+    .span5     { #gridSystem > .columns(@gridGutterWidth, @gridColumnWidth, @gridRowWidth, 5); }
+    .span6     { #gridSystem > .columns(@gridGutterWidth, @gridColumnWidth, @gridRowWidth, 6); }
+    .span7     { #gridSystem > .columns(@gridGutterWidth, @gridColumnWidth, @gridRowWidth, 7); }
+    .span8     { #gridSystem > .columns(@gridGutterWidth, @gridColumnWidth, @gridRowWidth, 8); }
+    .span9     { #gridSystem > .columns(@gridGutterWidth, @gridColumnWidth, @gridRowWidth, 9); }
+    .span10    { #gridSystem > .columns(@gridGutterWidth, @gridColumnWidth, @gridRowWidth, 10); }
+    .span11    { #gridSystem > .columns(@gridGutterWidth, @gridColumnWidth, @gridRowWidth, 11); }
+    .span12,
+    .container { #gridSystem > .columns(@gridGutterWidth, @gridColumnWidth, @gridRowWidth, 12); }
+    // Offset column options
+    .offset1   { #gridSystem > .offset(@gridColumnWidth, @gridGutterWidth, 1); }
+    .offset2   { #gridSystem > .offset(@gridColumnWidth, @gridGutterWidth, 2); }
+    .offset3   { #gridSystem > .offset(@gridColumnWidth, @gridGutterWidth, 3); }
+    .offset4   { #gridSystem > .offset(@gridColumnWidth, @gridGutterWidth, 4); }
+    .offset5   { #gridSystem > .offset(@gridColumnWidth, @gridGutterWidth, 5); }
+    .offset6   { #gridSystem > .offset(@gridColumnWidth, @gridGutterWidth, 6); }
+    .offset7   { #gridSystem > .offset(@gridColumnWidth, @gridGutterWidth, 7); }
+    .offset8   { #gridSystem > .offset(@gridColumnWidth, @gridGutterWidth, 8); }
+    .offset9   { #gridSystem > .offset(@gridColumnWidth, @gridGutterWidth, 9); }
+    .offset10  { #gridSystem > .offset(@gridColumnWidth, @gridGutterWidth, 10); }
+    .offset11  { #gridSystem > .offset(@gridColumnWidth, @gridGutterWidth, 11); }
+  }
+}
+
+// Fluid grid system
+// -------------------------
+#fluidGridSystem {
+  // Setup the mixins to be used
+  .columns(@fluidGridGutterWidth, @fluidGridColumnWidth, @columns) {
+    width: 1% * (@fluidGridColumnWidth * @columns) + (@fluidGridGutterWidth * (@columns - 1));
+  } 
+  .gridColumn(@fluidGridGutterWidth) {
+    float: left;
+    margin-left: @fluidGridGutterWidth;
+  }
+  // Take these values and mixins, and make 'em do their thang
+  .generate(@gridColumns, @fluidGridColumnWidth, @fluidGridGutterWidth) {      
+    // Row surrounds the columns
+    .row-fluid {
+      width: 100%;
+      .clearfix();
+
+      // Find all .span# classes within .row and give them the necessary properties for grid columns (supported by all browsers back to IE7, thanks @dhg)
+      > [class*="span"] {
+        #fluidGridSystem > .gridColumn(@fluidGridGutterWidth);
+          //background-color: red;
+      }
+      > [class*="span"]:first-child {
+        margin-left: 0;
+      }
+      // Default columns
+      .span1     { #fluidGridSystem > .columns(@fluidGridGutterWidth, @fluidGridColumnWidth, 1); }
+      .span2     { #fluidGridSystem > .columns(@fluidGridGutterWidth, @fluidGridColumnWidth, 2); }
+      .span3     { #fluidGridSystem > .columns(@fluidGridGutterWidth, @fluidGridColumnWidth, 3); }
+      .span4     { #fluidGridSystem > .columns(@fluidGridGutterWidth, @fluidGridColumnWidth, 4); }
+      .span5     { #fluidGridSystem > .columns(@fluidGridGutterWidth, @fluidGridColumnWidth, 5); }
+      .span6     { #fluidGridSystem > .columns(@fluidGridGutterWidth, @fluidGridColumnWidth, 6); }
+      .span7     { #fluidGridSystem > .columns(@fluidGridGutterWidth, @fluidGridColumnWidth, 7); }
+      .span8     { #fluidGridSystem > .columns(@fluidGridGutterWidth, @fluidGridColumnWidth, 8); }
+      .span9     { #fluidGridSystem > .columns(@fluidGridGutterWidth, @fluidGridColumnWidth, 9); }
+      .span10    { #fluidGridSystem > .columns(@fluidGridGutterWidth, @fluidGridColumnWidth, 10); }
+      .span11    { #fluidGridSystem > .columns(@fluidGridGutterWidth, @fluidGridColumnWidth, 11); }
+      .span12    { #fluidGridSystem > .columns(@fluidGridGutterWidth, @fluidGridColumnWidth, 12); }
+    }
+  }
+}
+
+// Background clipping - needed for modals.
+// Heads up: FF 3.6 and under need "padding" instead of "padding-box"
+.background-clip(@clip) {
+  -webkit-background-clip: @clip;
+     -moz-background-clip: @clip;
+          background-clip: @clip;
+}
+
+// Table columns
+.tableColumns(@columnSpan: 1) {
+  float: none; // undo default grid column styles
+  width: ((@gridColumnWidth) * @columnSpan) + (@gridGutterWidth * (@columnSpan - 1)) - 16; // 16 is total padding on left and right of table cells
+  margin-left: 0; // undo default grid column styles
+}

@@ -1,0 +1,78 @@
+/* Form styles for label above inputs */
+
+form {
+	.clearfix();
+}
+
+.formItem{
+	margin: .9em .75em 0px 0px;
+	float:left;
+	//padding-bottom: 32767px;
+	//margin-bottom: -32767px;
+}
+
+.formItem.first{
+	margin: 0px .75em 0px 0px;
+}
+
+form .newline{
+  clear:both;
+  //.clearfix();
+}
+
+form .verticalGroup div {
+	.inlineblock();
+	vertical-align:top;
+}
+
+form .verticalGroup div.err {
+	.maxWidth(15em);
+}
+
+.formItem > label:first-child, .formItem > span.label:first-child{
+	display: block;
+	//font-weight: 400;
+        margin-bottom: .3em;
+}
+
+input[type="radio"], input[type="checkbox"] {
+	vertical-align: middle;
+	margin-right: .3em;
+}
+
+.formItem .inf, .formItem .ro {
+	font-size: .8em;
+	color: #666;
+	font-weight: normal;
+}
+
+/*http://stackoverflow.com/questions/306252/how-to-align-checkboxes-and-their-labels-consistently-cross-browsers*/
+.formItem label.crLabel {
+   .inlineblock();
+   padding-left: 15px;
+   text-indent: -15px;
+}
+
+.formItem label.crLabel input {
+	width: 13px;
+    height: 13px;
+    padding: 0;
+    margin:0;
+    vertical-align: bottom;
+    position: relative;
+    top: -1px;
+    *overflow: hidden;
+}
+
+#valTxt img {
+	vertical-align: middle;
+	margin-left: 5px;
+}
+
+.wordwrap { 
+   white-space: pre-wrap;      /* CSS3 */   
+   white-space: -moz-pre-wrap; /* Firefox */    
+   white-space: -pre-wrap;     /* Opera <7 */   
+   white-space: -o-pre-wrap;   /* Opera 7 */    
+   word-wrap: break-word;      /* IE */
+}

@@ -1,0 +1,283 @@
+.hidden {
+	display: none !important;
+}
+
+.hide {
+    display: none;
+}
+
+.block {
+  display: block;
+}
+
+/* padding */
+
+.pad0 {
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+  padding-left: 0px !important;
+}
+
+.pad5 {
+    padding: 5px;
+}
+
+.pad10 {
+    padding: 10px;
+}
+
+.padL10 {
+  padding-left: 10px;
+}
+
+.pad15 {
+    padding: 15px;
+}
+
+.pad20 {
+    padding: 20px;
+}
+
+.padF5 {
+    padding: 5%;
+}
+
+.padF10 {
+    padding: 10%;
+}
+
+.padF15 {
+    padding: 15%;
+}
+
+.padF20 {
+    padding: 20%;
+}
+
+/* margins */
+
+.marginLR7 {
+  margin-left: .7em;
+  margin-right: .7em;
+}
+
+.marginL5 {
+  margin-left: 5px;
+}
+
+.marginL1 {
+  margin-left: 1em;
+}
+
+.marginF5 {
+    margin: 5%;
+}
+
+.marginFL5 {
+  margin-left: 5%;
+}
+
+.marginFR5 {
+  margin-right: 5%;
+}
+
+.marginT5 {
+  margin-top: .5em;
+}
+
+.marginT6 {
+  margin-top: .6em;
+}
+
+.marginT10 {
+  margin-top: .75em;
+}
+
+.marginB10 {
+  margin-bottom: .75em;
+}
+
+.height6em {
+  height: 6em;
+}
+
+.height3 {
+  height: 3.5em;
+}
+
+/* widths */
+
+.width5 {
+  width: 5.5em !important;
+}
+
+.width250 {
+    width: 250px;
+}
+
+.width400 {
+    width: 400px;
+}
+
+.fillwidth { width: 100%; height: auto; }
+.fillheight { height: 100%; width: auto; }
+
+/* alignment */
+
+.left {
+  text-align: left;
+}
+
+.center {
+  text-align: center;
+}
+
+.vertical-align-children-middle {
+  vertical-align: middle;
+}
+
+/* sizing */
+.height100 {
+  height: 100%;
+}
+
+.borderBox {
+  .box-sizing(border-box);
+}
+
+.floatLeft {
+  float:left;
+}
+
+.floatRight {
+  float:right;
+}
+
+.italic {
+  font-family: 'OpenSansItalic';
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.semi-bold-italic {
+  font-family: 'OpenSansSemiBoldItalic';
+}
+
+.bold-italic {
+  font-family: 'OpenSansBoldItalic';
+}
+
+.big-bold-italic {
+  font-family: 'OpenSansBoldItalic';
+  color: orange;
+  font-size: 1.05em;
+}
+
+.small-text {
+  font-size: .9em;
+}
+
+.inline-block {
+  .inlineblock();
+}
+
+.bring-to-front {
+  position: relative;
+  z-index: 1000;
+}
+
+.fontsize {
+  font-size: .85em;
+}
+
+.valign-bottom {
+  vertical-align: bottom;
+}
+
+.clear-both {
+  clear: both;
+}
+
+.error-color {
+  color: @errorText;
+}
+
+.errorText {
+  font-size: .9em;
+  color: @errorText;
+  font-family: 'OpenSansSemiboldItalic';
+}
+
+/*
+   Speech Bubbles
+   Usage: Apply a class of .speech-bubble and .speech-bubble-DIRECTION
+   <div class="speech-bubble speech-bubble-top">Hi there</div>
+*/
+.speech-bubble {
+  position: relative;
+  background-color: #2e2e2e;
+  //color: #E5E5E5;
+  border-radius: 10px;
+}
+.speech-bubble:after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 13px solid;
+}
+/* Position the Arrow */
+.speech-bubble-top:after {
+  border-bottom-color: #2e2e2e;
+  left: 50%;
+  bottom: 100%;
+  margin-left: -13px;
+}
+.speech-bubble-right:after {
+  border-left-color: #2e2e2e;
+  left: 100%;
+  top: 50%;
+  margin-top: -13px;
+}
+.speech-bubble-bottom:after {
+  border-top-color: #2e2e2e;
+  top: 100%;
+  left: 50%;
+  margin-left: -13px;
+}
+.speech-bubble-left:after {
+  border-color: transparent #2e2e2e transparent transparent;
+  top: 2.5em;
+  right: 100%;
+  margin-top: -13px;
+}
+
+.readOnlyField {
+  padding: .35em;
+  background-color: white;
+}
+
+.footerRight {
+  position: absolute;
+  right:15px;
+}
+
+.badge {
+    background:         radial-gradient( 5px -9px, circle, white 8%, red 26px );
+    background:    -moz-radial-gradient( 5px -9px, circle, white 8%, red 26px );
+    background:     -ms-radial-gradient( 5px -9px, circle, white 8%, red 26px );
+    background:      -o-radial-gradient( 5px -9px, circle, white 8%, red 26px );
+    background: -webkit-radial-gradient( 5px -9px, circle, white 8%, red 26px );
+    background-color: red;
+    //border: 1px solid black;
+    border-radius: 10px; /* one half of ( (border * 2) + height + padding ) */
+    //box-shadow: 1px 1px 1px black;
+    color: white;
+    font: 11px/13px Helvetica, Verdana, Tahoma;
+    height: 13px; 
+    padding: 1px 2px 0 2px;
+    text-align: center;
+    min-width: 14px;
+}

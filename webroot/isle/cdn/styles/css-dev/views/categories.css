@@ -1,0 +1,6 @@
+.scroll-pane {
+  margin-top: 0em;
+}
+.scroll-pane.has-message {
+  margin-top: 2.75em;
+}

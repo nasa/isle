@@ -1,0 +1,93 @@
+/* mixins */
+.listControls {
+  padding: 8px;
+  visibility: hidden;
+}
+.btn-group {
+  margin-left: 5px;
+}
+.table {
+  width: 0%;
+  margin-right: 12px;
+  margin-bottom: 0px;
+}
+.table th,
+.table td,
+.table td > span {
+  width: auto;
+  white-space: nowrap;
+}
+#VerColMenu,
+#VerColMenu ul {
+  list-style: none;
+  text-align: left;
+}
+#VerColMenu li h4 {
+  display: block;
+  border-top: 1px solid #ddd;
+  line-height: 2em;
+  cursor: pointer;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  width: 14em;
+}
+#VerColMenu span.expander {
+  font-family: Courier, monospace;
+  display: inline-block;
+  /* fix for IE 7 and below unsupport for inline-block */
+  zoom: 1;
+  *display: inline;
+  float: right;
+}
+#VerColMenu li h4:hover,
+#VerColMenu li h4:focus {
+  background-color: #ebebeb;
+}
+.modelDetails {
+  display: inline-block;
+  /* fix for IE 7 and below unsupport for inline-block */
+  zoom: 1;
+  *display: inline;
+  position: absolute;
+  margin-top: -24px;
+  margin-left: 7px;
+  background-color: #2e2e2e;
+  color: #E5E5E5;
+  padding: 0px 10px 10px 0px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+}
+.modelDetails a {
+  color: #99CCFF;
+}
+.modelDetails .thumbImg {
+  width: 5em;
+  height: auto;
+}
+.modelDetails .noImage {
+  display: block;
+  width: 5em;
+  height: 5em;
+  text-align: center;
+  line-height: 5em;
+  background-color: white;
+  opacity: .5;
+  color: black;
+}
+.col1,
+.col2 {
+  display: inline-block;
+  /* fix for IE 7 and below unsupport for inline-block */
+  zoom: 1;
+  *display: inline;
+  vertical-align: top;
+}
+.col1 {
+  text-align: center;
+  margin: 5px 5px 0px 5px;
+}
+.overdue {
+  color: #b94a48;
+  font-family: 'OpenSansSemiBold';
+}

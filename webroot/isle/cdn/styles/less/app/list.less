@@ -1,0 +1,146 @@
+@import "../lib/bootstrap/mixins.less";
+@import "../lib/bootstrap/variables.less";
+
+//@media screen and (min-width: 614px) {
+  div#bodyContent {
+      height:100%;
+      .box-sizing(border-box);
+  }
+
+  div#container {
+    height:100%;
+  }
+
+  div#middle {
+    height:100%;
+    .box-sizing(border-box);
+  }
+
+  div#body {
+    height:100%;
+  }
+
+  .alert {
+    margin-bottom: .4em;
+  }
+
+  .listRightCont {
+    height: 100%;
+    .box-sizing(border-box);
+    float:left;
+    width:100%;
+  }
+
+  .listLeft {
+    float:left;
+    margin-left:-100%;
+    width:11.5em;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto; 
+  }
+
+  .listRight {
+    height: 100%;
+    .box-sizing(border-box);
+    position: relative;
+    margin-left:12.5em;
+  }
+
+  .scroll-pane {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin-top: 2.3em;
+    .box-sizing(border-box);
+    //float: left;
+    //display:table;
+    //.clearfix();
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .scroll-pane.width100 {
+    width: 100%;
+  }
+
+  .scroll-pane.has-message {
+    margin-top: 5.05em;
+  }
+//}
+
+.listControls {
+  visibility: hidden;
+  padding-left: 8px;
+  .inlineblock();
+  //width:30em;
+}
+
+.btn-group {
+  margin-left: 5px;
+}
+
+#deleteSelectedBtn {
+  visibility: hidden;
+}
+
+.table {
+  margin-right: 12px;
+  margin-bottom: 0px;
+  th,
+  td, td > span {
+    width: auto;
+    overflow: hidden;
+  }
+  th, td {
+    vertical-align: inherit;
+  }
+}
+
+.baseGroup {
+  font-weight: bold;
+  font-style: italic;
+}
+
+.form-search {
+  .inlineblock();
+  vertical-align: top;
+}
+
+.asset-actions {
+  float: right;
+}
+
+.asset-actions .alert {
+  padding: 4px 7px 4px 7px;
+  font-size: .8em;
+}
+
+.badge {
+  margin: 0px 2px 2px 0px;
+}
+
+.table input[type='checkbox'] {
+  margin-right: 0;
+}
+
+.table th.center, .table td.center {
+  text-align: center;
+  cursor: pointer;
+}
+
+.table td.checkone:hover {
+  background-color: darken(@backgroundColor, 7%);
+}
+
+.table th.checkall:hover {
+  background-color: darken(@backgroundColor, 5%);
+}
+
+.table td.checkone.cc-checked, .table th.checkall.cc-checked {
+  background-color: @linkColor;
+}
+
+.thumbImg {
+  vertical-align: bottom;
+}

@@ -1,0 +1,161 @@
+// Derived from code on Twitter Bootstrap (http://twitter.github.com/bootstrap/)
+// DROPDOWN MENUS
+// --------------
+
+// Use the .menu class on any <li> element within the topbar or ul.tabs and you'll get some superfancy dropdowns
+.menu {
+  position: relative;
+}
+
+.dropdown-toggle:active,
+.open .dropdown-toggle {
+  outline: 0;
+}
+// Dropdown arrow/caret
+.caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  text-indent: -99999px;
+  // IE7 won't do the border trick if there's a text indent, but it doesn't
+  // do the content that text-indent is hiding, either, so we're ok.
+  *text-indent: 0;
+  vertical-align: top;
+  border-left:  4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top:   4px solid #F3F3F3;
+  content: "\2193";
+}
+.menu .caret {
+  margin-top: .55em;
+  margin-left: .45em;
+  *margin-top: .5em;
+}
+.menu:hover .caret, .menu > a:focus .caret {
+	border-top: 4px solid #fff;
+}
+.menu.open .caret {
+  border-top: 4px solid #000 !important;
+}
+
+// todo: replace div#nav with a class .topnav
+
+div#nav .menu.open > a {
+    background-color: #F3F3F3;
+    color: #000;
+    border-left: 1px solid #000;
+    border-right: 1px solid #000;
+	padding-left: .8em - .063em;
+	padding-right: .8em - .063em;
+}
+
+div#nav .menu.open:first-child > a {
+    border-left: 0px solid #000;
+	padding-left: .8em;
+	padding-right: .8em - .063em;
+}
+
+div#nav .menu.open:last-child > a {
+    border-right: 0px solid #000;
+	padding-left: .8em - .063em;
+	padding-right: .8em;  
+}
+
+div#nav .menu.open:only-child > a {
+    border-right: 0px solid #000;
+    padding-left: .8em; 
+}
+
+// The dropdown menu (ul)
+.dropdown-menu {
+  position: absolute;
+  top:100%;
+  left:0;/* makes it look right in ie 7. */
+  //z-index: @zindexDropdown;
+  float: left;
+  display: none; // none by default, but block on "open" of the menu
+  min-width: 160px;
+  max-width: 220px;
+  _width: 160px;
+  padding: 4px 0;
+  margin: 0; // override default ul
+  list-style: none;
+  background-color: #F3F3F3;
+  border-left: 1px solid #000;
+  border-right: 1px solid #000;
+  border-bottom: 1px solid #000;
+  .border-radius(0 0 5px 5px);
+  .box-shadow(0 5px 7px rgba(0,0,0,.2));
+  -webkit-background-clip: padding-box;
+     -moz-background-clip: padding;
+          background-clip: padding-box;
+  /* simulated drop shadow for ie 7 & 8 */
+  *border-right-width: 2px; /* for ie 7 */
+  *border-bottom-width: 2px; /* for ie 7 */
+  border-right-width: ~"2px\0/"; /* for ie 8 */
+  border-bottom-width: ~"2px\0/"; /* for ie 8 */
+
+  // Allow for dropdowns to go bottom up (aka, dropup-menu)
+  &.bottom-up {
+    top: auto;
+    bottom: 100%;
+    margin-bottom: 2px;
+  }
+
+  // Dividers (basically an hr) within the dropdown
+  .divider {
+    height: 1px;
+    margin: 5px 1px;
+    overflow: hidden;
+    background-color: #e5e5e5;
+    border-bottom: 1px solid @white;
+
+    // IE7 needs a set width since we gave a height. Restricting just
+    // to IE7 to keep the 1px left/right space in other browsers.
+    // It is unclear where IE is getting the extra space that we need
+    // to negative-margin away, but so it goes.
+    *width: 100%;
+    *margin: -5px 0 5px;
+  }
+
+  // Links within the dropdown menu
+  a {
+    display: block;
+    padding: .4em .8em .4em .8em ;
+    clear: both;
+    font-weight: normal;
+    color: #000;
+    white-space: nowrap;
+  }
+}
+
+div#nav .menu.open:first-child .dropdown-menu {
+    left: -1px;
+}
+
+// Hover state
+.dropdown-menu li > a:hover,
+.dropdown-menu .active > a,
+.dropdown-menu .active > a:hover {
+  color: #F3F3F3;
+  //background-color: #737373;
+  background-color: @linkColor;
+  text-decoration: none;
+}
+
+// Open state for the dropdown
+.menu.open {
+  // IE7's z-index only goes to the nearest positioned ancestor, which would
+  // make the menu appear below buttons that appeared later on the page
+  // *z-index: @zindexDropdown;
+
+  .dropdown-menu {
+    display: block;
+  }
+}
+
+// Typeahead
+.typeahead {
+  margin-top: 2px; // give it some space to breathe
+  .border-radius(4px);
+}

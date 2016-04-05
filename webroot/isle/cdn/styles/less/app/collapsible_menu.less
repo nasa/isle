@@ -1,0 +1,93 @@
+/*	Vertical Collapsible Menu
+	27 Jan 2007
+        From: http://dev.danen.org/demo/danen/jquery/collapsible_menu.css
+*/
+
+#VerColMenu, #VerColMenu ul {
+  list-style : none;
+  text-align: left;
+}
+
+#VerColMenu span.item {
+  color : #000000;
+  display : block;
+  text-decoration: none;
+  border-top: 1px solid @tableBorder;
+}
+
+#VerColMenu span.item span {
+  line-height: 2em;
+  padding : 0em 0.5em 0em 0.5em;
+  cursor: pointer;
+  .inlineblock();
+}
+
+#VerColMenu span.item span.expander {
+  font-family: Courier, monospace;
+  border-left: 1px solid @tableBorder;
+  float:right;
+}
+
+#VerColMenu span.item span:hover, #VerColMenu span.item span:focus {
+  background-color: @tableBackgroundHover;
+}
+
+/* Second Level */
+
+#VerColMenu ul span.item {
+  background: darken(@backgroundColor,4);
+  border-top: 1px solid darken(@tableBorder,4);
+}
+
+#VerColMenu ul span.item span.expander {
+  border-left: 1px solid darken(@tableBorder,4);
+}
+
+#VerColMenu ul span.item span:hover, #VerColMenu ul span.item span:focus {
+  background-color: darken(@tableBackgroundHover,4);
+}
+
+/* Third Level */
+
+#VerColMenu ul ul span.item {
+  background: darken(@backgroundColor,8);
+  border-top: 1px solid darken(@tableBorder,8);
+}
+
+#VerColMenu ul ul span.item span.expander {
+  border-left: 1px solid darken(@tableBorder,8);
+}
+
+#VerColMenu ul ul span.item span:hover, #VerColMenu ul ul span.item span:focus {
+  background-color: darken(@tableBackgroundHover,8);
+}
+
+/* Fourth Level */
+
+#VerColMenu ul ul ul span.item {
+  background: darken(@backgroundColor,12);
+  border-top: 1px solid darken(@tableBorder,12);
+}
+
+#VerColMenu ul ul ul span.item span.expander {
+  border-left: 1px solid darken(@tableBorder,12);
+}
+
+#VerColMenu ul ul ul span.item span:hover, #VerColMenu ul ul ul span.item span:focus {
+  background-color: darken(@tableBackgroundHover,12);
+}
+
+/* Fifth Level */
+
+#VerColMenu ul ul ul ul span.item {
+  background: darken(@backgroundColor,16);
+  border-top: 1px solid darken(@tableBorder,16);
+}
+
+#VerColMenu ul ul ul ul span.item span.expander {
+  border-left: 1px solid darken(@tableBorder,16);
+}
+
+#VerColMenu ul ul ul ul span.item span:hover, #VerColMenu ul ul ul ul span.item span:focus {
+  background-color: darken(@tableBackgroundHover,16);
+}

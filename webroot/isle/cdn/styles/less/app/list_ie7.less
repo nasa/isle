@@ -1,0 +1,94 @@
+@import "../lib/bootstrap/mixins.less";
+@import "../lib/bootstrap/variables.less";
+
+.listRightCont {
+  float:left;
+  width:100%;
+}
+
+.listLeft {
+  float:left;
+  margin-left:-97%;
+  width:11.5em;
+}
+
+.listRight {
+  margin-left:12.5em;
+}
+
+.listControls {
+  visibility: hidden;
+  .inlineblock();
+  padding-left: 8px;
+  padding-bottom: 8px;
+  //width:30em;
+}
+
+#deleteSelectedBtn {
+  visibility: hidden;
+}
+
+.btn-group {
+  margin-left: 5px;
+}
+
+.scroll-pane.width100 {
+  width: 100%;
+}
+
+.table {
+  width:auto;
+  margin-right: 12px;
+  margin-bottom: 0px;
+  th,
+  td, td > span {
+    width: auto;
+    overflow: hidden;
+  }
+  th, td {
+    vertical-align: inherit;
+  }
+}
+
+.form-search {
+  .inlineblock();
+  vertical-align: top;
+}
+
+.asset-actions {
+  float: right;
+}
+
+.asset-actions .alert {
+  padding: 4px 7px 4px 7px;
+  font-size: .8em;
+}
+
+.badge {
+  margin: 0px 2px 2px 0px;
+}
+
+.table input[type='checkbox'] {
+  margin-right: 0;
+}
+
+.table th.center, .table td.center {
+  text-align: center;
+  cursor: pointer;
+}
+
+.table td.checkone:hover {
+  background-color: darken(@backgroundColor, 7%);
+}
+
+.table th.checkall:hover {
+  background-color: darken(@backgroundColor, 5%);
+}
+
+.table td.checkone.cc-checked, .table th.checkall.cc-checked {
+  background-color: @linkColor;
+}
+
+.thumbImg {
+  vertical-align: bottom;
+}
