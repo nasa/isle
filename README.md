@@ -38,6 +38,10 @@ Deployed on the mature, open-source Linux, Apache, MySQL, and PHP (LAMP) technol
 Search source code for ```config-todo:``` for things you may need to configure.  
 **NOTE:** ISLE was modified to be easy to install and configure in a local development environment. Additional configuration steps would be needed to run ISLE in a secure production environment such as changing database credentials and moving them into a separate file and adding that file to .gitignore so the credentials don't go into source control.
 
+## How to Contribute
+
+[Check out our backlog](https://www.pivotaltracker.com/n/projects/1569431) of the things we want to add/fix. Fork the project, make your changes, test ( we don't have time to test for you ), then submit a pull request. Submit any new bugs or feature requests to the [issues page](https://github.com/nasa/isle/issues).
+
 ## Multiple Inventories
 
 ISLE supports multiple "instances" so multiple inventories can be managed separately. Each instance has a unique url, but accesses the same php files and database. Data is kept separate by using different tables.  
