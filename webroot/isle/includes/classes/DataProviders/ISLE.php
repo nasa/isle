@@ -24,6 +24,7 @@
     
     public function __construct()
     {
+      // config-todo: change db credentials and move into a separate file that gets "included" in this file and add that file to .gitignore before using in a production environment.
       $this->ds = new \PDO('mysql:host:127.0.0.1;port=3306;dbname=isle_'.SERVER_INSTANCE.';charset=utf8', 'root','root');
       $this->ds->setAttribute(PDO::ATTR_EMULATE_PREPARES, TRUE);
       $this->ds->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
