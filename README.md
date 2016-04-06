@@ -36,7 +36,7 @@ Deployed on the mature, open-source Linux, Apache, MySQL, and PHP (LAMP) technol
 ## Configuration
 
 Search source code for ```config-todo:``` for things you may need to configure.  
-**NOTE:** ISLE was modified to be easy to install and configure in a local development environment. Additional configuration steps would be needed to run ISLE in a secure production environment such as moving credentials into a separate file and adding that file to .gitignore so the credentials don't go into source control and changing the database credentials.
+**NOTE:** ISLE was modified to be easy to install and configure in a local development environment. Additional configuration steps would be needed to run ISLE in a secure production environment such as changing database credentials and moving them into a separate file and adding that file to .gitignore so the credentials don't go into source control.
 
 ## Multiple Inventories
 
