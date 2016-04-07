@@ -47,7 +47,7 @@ Search source code for ```config-todo:``` for things you may need to configure.
 ISLE supports multiple "instances" so multiple inventories can be managed separately. Each instance has a unique url, but accesses the same php files and database. Data is kept separate by using different tables.  
 The ```instances``` folder contains two example instances ```myinstance``` and ```myinstance2```.  
 ### It would be nice to have a bash script to automate creation of additional instances, however it is currently a manual process.  
-To create additional instances duplicate the ```instances/myinstance``` folder and rename to whatever you want to call your instance. Delete the .log files in ```logs```. Then replace ```myinstance``` with whatever instance name you chose in all files within the duplicated folder. Also rename ```isle.local.myinstance.conf``` to ```isle.local.INSERT_YOUR_INSTANCE_NAME```.conf.  
+To create additional instances duplicate the ```instances/myinstance``` folder and rename to whatever you want to call your instance. Delete the .log files in ```logs```. Then replace ```myinstance``` with whatever instance name you chose in all files within the duplicated folder. Also rename ```isle.local.myinstance.conf``` to ```isle.local.INSERT_YOUR_INSTANCE_NAME.conf```.  
 Duplicate ```webroot/myinstance```. Delete any files in ```uploads``` except the .htaccess files.  
 Edit ```isle-init.sh``` and copy and paste the following lines for running sql and enabling conf files. Replace ```myinstance``` with whatever instance name you chose.
 
