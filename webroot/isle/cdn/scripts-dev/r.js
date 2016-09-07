@@ -3603,7 +3603,7 @@ parseStatement: true, parseSourceElement: true */
         case 'const':
             return true;
 
-        // For compatiblity to SpiderMonkey and ES.next
+        // For compatibility to SpiderMonkey and ES.next
         case 'yield':
         case 'let':
             return true;
