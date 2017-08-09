@@ -274,7 +274,7 @@ _User-Agent:_    '.$userAgent;
           }
           
           try {
-            $addedItem = $svc->$_POST['method']($class);
+            $addedItem = $svc->{$_POST['method']}($class);
           }
           catch(ISLE\UIException $e) {
             //validation failed. show errors.
@@ -343,7 +343,7 @@ _User-Agent:_    '.$userAgent;
           $res = $svc->$countMethod($class, $_REQUEST['filter']);
           $ret['count'] = $res['total'];
 
-          $rows = $svc->$_REQUEST['method']($class, $_REQUEST['start'], $_REQUEST['limit'], $_REQUEST['select'], $_REQUEST['distinct'], $_REQUEST['filter'], $_REQUEST['order']);
+          $rows = $svc->{$_REQUEST['method']}($class, $_REQUEST['start'], $_REQUEST['limit'], $_REQUEST['select'], $_REQUEST['distinct'], $_REQUEST['filter'], $_REQUEST['order']);
 
           if(isset($_REQUEST['tree']) && $_REQUEST['tree'] == "true") {
             $items = array();
@@ -364,7 +364,7 @@ _User-Agent:_    '.$userAgent;
         break;
       case 'getForeignKeyReferences':
         $class->id = $_REQUEST['nodeId'];
-        $rows = $svc->$_REQUEST['method']($class);
+        $rows = $svc->{$_REQUEST['method']}($class);
         exit(prefixJSON(2,json_encode($rows)));
         break;
       default:
