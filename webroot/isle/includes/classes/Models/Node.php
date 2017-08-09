@@ -109,7 +109,7 @@
               case 'integer':
               case 'string':
                 try {
-                  static::$a["validator"]($this->$prop);
+                  static::{$a["validator"]}($this->$prop);
                 }
                 catch (UIException $e) {
                   // create a key value array where the key is the property in error and the value is the message.
