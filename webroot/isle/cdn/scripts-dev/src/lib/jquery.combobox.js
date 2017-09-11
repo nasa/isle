@@ -26,7 +26,7 @@
           var matcher = new RegExp( $.ui.autocomplete.escapeRegex(request.term), "i" );
           var select_el = select.get(0); // get dom element
           var rep = new Array(); // response array
-          var maxRepSize = 100; // maximum response size  
+          var maxRepSize = 2000; // maximum response size  
           // simple loop for the options
           for (var i = 0; i < select_el.length; i++) {
             var text = select_el.options[i].text;

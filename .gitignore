@@ -6,3 +6,6 @@ Thumbs.db
 ._*
 .idea
 .vagrant
+*~
+.snapshot
+secrets.php
