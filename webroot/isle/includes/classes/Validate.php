@@ -1,4 +1,6 @@
 <?php
+  use ISLE\Secrets;
+
   namespace ISLE;
   
   class Validate
@@ -79,7 +81,9 @@
       
       try
       {
-        $t = \DateTime::createFromFormat('m/d/Y', $mdy[1] . "/" . $mdy[2] . "/" . $mdy[3], new \DateTimeZone('America/New_York'));
+        $t = \DateTime::createFromFormat('m/d/Y',
+                                         $mdy[1] . "/" . $mdy[2] . "/" . $mdy[3],
+                                         new \DateTimeZone(Secrets::TIME_ZONE));
         return $t->format('Y-m-d');
       }
       catch (\Exception $e)
@@ -95,16 +99,20 @@
       }
       
       if(is_null($min)) {
-        $min = \DateTime::createFromFormat('m/d/Y', "01/02/1900", new \DateTimeZone('America/New_York'));
+        $min = \DateTime::createFromFormat('m/d/Y', "01/02/1900",
+                                           new \DateTimeZone(Secrets::TIME_ZONE));
       }
       
       if(is_null($max)) {
-        $max = \DateTime::createFromFormat('m/d/Y', date('m/d/Y'), new \DateTimeZone('America/New_York'));
+        $max = \DateTime::createFromFormat('m/d/Y', date('m/d/Y'),
+                                           new \DateTimeZone(Secrets::TIME_ZONE));
       }
       
       try
       {
-        $t = \DateTime::createFromFormat('m/d/Y', $mdy[1] . "/" . $mdy[2] . "/" . $mdy[3], new \DateTimeZone('America/New_York'));
+        $t = \DateTime::createFromFormat('m/d/Y',
+                                         $mdy[1] . "/" . $mdy[2] . "/" . $mdy[3],
+                                         new \DateTimeZone(Secrets::TIME_ZONE));
       }
       catch (\Exception $e)
       {

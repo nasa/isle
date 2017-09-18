@@ -1,6 +1,9 @@
 <?php
-// without this you will get a php E_WARNING error. PHP needs this to generate proper times in the logs.
-date_default_timezone_set('America/New_York');
+
+//require_once __DIR__ . '/classes/Secrets.php';
+// without this you will get a php E_WARNING error. PHP needs this to generate
+// proper times in the logs.
+date_default_timezone_set("America/Los_Angeles");
 
 ini_set('log_errors', 1);
 ini_set('display_errors', 0);
@@ -11,10 +14,13 @@ define('SERVER_INSTANCE', 'dev');
 define('SERVER_WEBROOT', '');
 
 $svr_path = $_SERVER["REQUEST_URI"];
-$svr_instance = substr($svr_path, (strlen(SERVER_WEBROOT) ? strpos($svr_path, SERVER_WEBROOT) : 0) + strlen(SERVER_WEBROOT));
+$svr_instance = substr($svr_path,
+                       (strlen(SERVER_WEBROOT) ? strpos($svr_path, SERVER_WEBROOT)
+                                               : 0) + strlen(SERVER_WEBROOT));
 $svr_instance = trim($svr_instance, "/");
 $svr_instance = substr($svr_instance, 0, strpos($svr_instance, "/"));
-$logLocation = realpath(__DIR__ . '/../../../instances/') . '/' . $svr_instance . '/logs/';
+$logLocation = realpath(__DIR__ . '/../../../instances/') . '/' . $svr_instance .
+               '/logs/';
 
 ini_set('error_log', $logLocation . 'error.log');
 
@@ -34,12 +40,21 @@ else { // prod
  *   log_errors - log everything except E_NOTICE, E_STRICT, E_DEPRECATED.
  *     log csrf in a separate log. log 404 errors in a separate log.
  *   error_log
- *   halt and redirect to generic error message for types E_ERROR, E_PARSE, E_COMPILE_ERROR, E_USER_ERROR and uncaught exceptions.
- * any errors in this file will likely result in a blank screen, not sure if the default error handler will fire in these cases or not.
+ *   halt and redirect to generic error message for types E_ERROR, E_PARSE,
+ *   E_COMPILE_ERROR, E_USER_ERROR and uncaught exceptions.
+ * any errors in this file will likely result in a blank screen, not sure if
+ * the default error handler will fire in these cases or not.
  */
 
-register_shutdown_function('handle_fatal_errors'); // redirect to error page for types E_ERROR, E_PARSE, E_COMPILE_ERROR, E_USER_ERROR. won't handle parse errors in controller files, config, or auth. catches errors in remoteInterface.php and sends oops.html back in ajax response. doesn't catch parse errors in remoteInterface, those go through default error handler and sent back in ajax response.
-set_exception_handler( 'global_exception_handler' ); // redirect to error page for uncaught exceptions
+// redirect to error page for types E_ERROR, E_PARSE, E_COMPILE_ERROR,
+// E_USER_ERROR. won't handle parse errors in controller files, config, or auth.
+// catches errors in remoteInterface.php and sends oops.html back in ajax response.
+// doesn't catch parse errors in remoteInterface, those go through default error
+// handler and sent back in ajax response.
+register_shutdown_function('handle_fatal_errors');
+
+// redirect to error page for uncaught exceptions
+set_exception_handler( 'global_exception_handler' );
 
 class ErrorOrWarningException extends Exception
 {
@@ -73,15 +88,20 @@ function error_to_exception( $code, $message, $file, $line, $context )
 
 function handle_fatal_errors()
 {
-  //this will handle all the error types that set_error_handler won't.
-  //E_ERROR, E_PARSE, E_CORE_ERROR, E_CORE_WARNING, E_COMPILE_ERROR, E_COMPILE_WARNING, E_STRICT.
-  // only show error page for types E_ERROR, E_PARSE, E_COMPILE_ERROR, E_USER_ERROR
-  //don't throw an exception or execution will stop.
+  // This will handle all the error types that set_error_handler won't.
+  // E_ERROR, E_PARSE, E_CORE_ERROR, E_CORE_WARNING, E_COMPILE_ERROR,
+  // E_COMPILE_WARNING, E_STRICT.
+  // Only show error page for types E_ERROR, E_PARSE, E_COMPILE_ERROR, E_USER_ERROR
+  // Don't throw an exception or execution will stop.
   $error = error_get_last();
   $redirect_error_types = array('E_ERROR','E_PARSE','E_COMPILE_ERROR','E_USER_ERROR');
-  
-  if($error !== NULL && isset($error['type']) && in_array(getErrorCodeName($error['type']), $redirect_error_types)){
-    $exception = new ErrorOrWarningException( $error['type'], isset($error['message']) ? $error['message'] : 'No Error Message', isset($error['file']) ? $error['file'] : NULL, isset($error['line']) ? $error['line'] : NULL, NULL );
+
+  if ($error !== NULL && isset($error['type']) &&
+      in_array(getErrorCodeName($error['type']), $redirect_error_types)) {
+    $exception = new ErrorOrWarningException( $error['type'],
+                 isset($error['message']) ? $error['message'] : 'No Error Message',
+                 isset($error['file']) ? $error['file'] : NULL,
+                 isset($error['line']) ? $error['line'] : NULL, NULL );
 
     global_exception_handler( $exception, true );
   }
@@ -89,26 +109,46 @@ function handle_fatal_errors()
 
 function global_exception_handler( $ex, $logError = true )
 {
-  // if we are in production we give our visitor a nice message without all the details.
+  // If we are in production we give our visitor a nice message without all the
+  // details.
+
+echo '$logError = ' . $logError;
+$msg = 'BLANK';
+
   if($logError) {
     switch($ex->getCode()) {
       case 303:
         // Possible CSRF attack.
         $time = date('[d-M-Y H:i:s e]', time());
-        error_log($time . ' Uncaught PHP exception (Code ' . $ex->getCode() . '): ' . $ex->getMessage() . ' in ' . $ex->getFile() . ' on line ' . $ex->getLine() . "\nPHP Stack trace:\n" . $ex->getTraceAsString() . " *Generated by error.php\n", 3, $GLOBALS['logLocation'] . 'security.log');
+        $msg = $time . ' Uncaught PHP exception (Code ' . $ex->getCode() .
+               '): ' . $ex->getMessage() . ' in ' . $ex->getFile() .
+               ' on line ' . $ex->getLine() . "\nPHP Stack trace:\n" .
+               $ex->getTraceAsString() . " *Generated by error.php\n";
+        error_log($msg, 3, $GLOBALS['logLocation'] . 'security.log');
         break;
       case 404:
         $time = date('[d-M-Y H:i:s e]', time());
-        error_log($time . ' Uncaught PHP exception (Code ' . $ex->getCode() . '): ' . $ex->getMessage() . ' in ' . $ex->getFile() . ' on line ' . $ex->getLine() . "\nPHP Stack trace:\n" . $ex->getTraceAsString() . " *Generated by error.php\n", 3, $GLOBALS['logLocation'] . '404.log');
+        $msg = $time . ' Uncaught PHP exception (Code ' . $ex->getCode() .
+               '): ' . $ex->getMessage() . ' in ' . $ex->getFile() .
+               ' on line ' . $ex->getLine() . "\nPHP Stack trace:\n" .
+               $ex->getTraceAsString() . " *Generated by error.php\n";
+        error_log($msg, 3, $GLOBALS['logLocation'] . '404.log');
         break;
       default:
-        error_log('Uncaught PHP exception (Code ' . $ex->getCode() . '): ' . $ex->getMessage() . ' in ' . $ex->getFile() . ' on line ' . $ex->getLine() . "\nPHP Stack trace:\n" . $ex->getTraceAsString() . ' *Generated by error.php');
+        $msg = 'Uncaught PHP exception (Code ' . $ex->getCode() . '): ' .
+               $ex->getMessage() . ' in ' . $ex->getFile() . ' on line ' .
+               $ex->getLine() . "\nPHP Stack trace:\n" .
+               $ex->getTraceAsString() . ' *Generated by error.php';
+        error_log($msg);
         break;
     }
+echo "\n<samp>" . $msg . "</samp>\n";
   }
-  
+
   $oopsTitle = "Oops";
-  $oopsMsg = "<h2>Oops</h2><p>I'm sorry. Something went wrong. " . 'Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</p>';
+  $oopsMsg = "<h2>Oops</h2><p>I'm sorry. Something went wrong. " .
+             'Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</p>' .
+             "\n<kbd>" . $msg . "</kbd>\n";
   
   if($ex->getCode() == 404) {
     $oopsTitle = "404";

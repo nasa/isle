@@ -58,7 +58,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
           dataFilter: Util.parseJSON,
           error: function(jqXHR, textStatus, errorThrown) {
             //an error occurred on the server.
-            $('#VerColMenu').html('<div class="errorText">I\'m sorry.<br />Something went wrong.<br />Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>');
+            $('#VerColMenu').html('<div class="errorText">I\'m sorry.<br />Something went wrong (' + errorThrown + ').<br />Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>');
             return false;
           },
           success: function(data, textStatus, jqXHR) {

@@ -2,8 +2,10 @@
   /**
    * The ISLE\DataProviders\ISLE class provides ISLE data services to the ISLE\Services class.
    */
+
   namespace ISLE\DataProviders;
   
+  use ISLE\Secrets;
   use ISLE\Models\Node;
   use ISLE\Service;  
 
@@ -24,8 +26,14 @@
     
     public function __construct()
     {
-      // config-todo: change db credentials and move into a separate file that gets "included" in this file and add that file to .gitignore before using in a production environment.
-      $this->ds = new \PDO('mysql:host:127.0.0.1;port=3306;dbname=isle_'.SERVER_INSTANCE.';charset=utf8', 'root','root');
+      // config-todo: change db credentials and move into a separate file
+      // that gets "included" in this file and add that file to .gitignore
+      // before using in a production environment.
+
+      $db_str = 'mysql:host:' . Secrets::DB_HOST_NAME . ';port=' .
+                Secrets::DB_PORT . ';dbname=isle_' . SERVER_INSTANCE .
+                ';charset=utf8';
+      $this->ds = new \PDO($db_str, Secrets::DB_USER, Secrets::DB_PASSWORD);
       $this->ds->setAttribute(PDO::ATTR_EMULATE_PREPARES, TRUE);
       $this->ds->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
@@ -102,7 +110,8 @@
     
     public function getAll(Node $n, $start, $limit, $select, $distinct, $filter, $order)
     {
-      $stmt = $this->ds->prepare(self::_getAll($n, $start, $limit, $select, $distinct, $filter, $order));
+      $stmt = $this->ds->prepare(self::_getAll($n, $start, $limit, $select,
+                                               $distinct, $filter, $order));
       $stmt = self::_bindFilterParams($n, $stmt, $filter);
       $stmt->execute();
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -110,7 +119,8 @@
     
     public function getAllAssets(Node $n, $start, $limit, $select, $distinct, $filter, $order)
     {
-      $stmt = $this->ds->prepare(self::_getAllAssets($n, $start, $limit, $select, $distinct, $filter, $order));
+      $stmt = $this->ds->prepare(self::_getAllAssets($n, $start, $limit, $select,
+                                                     $distinct, $filter, $order));
       $stmt = self::_bindFilterParams($n, $stmt, $filter);
       $stmt->execute();
       return $stmt->fetchAll(PDO::FETCH_ASSOC);

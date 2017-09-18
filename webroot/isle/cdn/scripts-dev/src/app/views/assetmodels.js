@@ -117,7 +117,8 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
         dataFilter: Util.parseJSON,
         error: function(jqXHR, textStatus, errorThrown) {
           $('.tagit .ui-autocomplete-input').val('Load failed.');
-          $('#msg-' + opts.fieldNames['categories']).html("I'm sorry. Something went wrong.");
+          $('#msg-' + opts.fieldNames['categories'])
+                          .html("I'm sorry. Something went wrong (" + errorThrown + ").");
           return false;
         },
         success: function(data, textStatus, jqXHR) {

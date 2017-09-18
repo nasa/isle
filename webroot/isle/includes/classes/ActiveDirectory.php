@@ -1,6 +1,7 @@
 <?php
-    //require_once 'includes/config.php';
-    require_once 'includes/secrets.php';
+    use ISLE\Secrets;
+
+    namespace ISLE;
 
     class ActiveDirectory
     {
@@ -105,39 +106,87 @@
 
       // Stores connection to server:
       private $connection;
+      private $username;	// Use distinguishedName, not sAMAccountName?
+      private $password;
 
 
-      // Constructor:
-      function __construct() 
-      { 
+      // Constructor:  *** MAY NOT WORK IF SAMACCOUNTNAME PASSED INSTEAD OF DN: ***
+      function __construct($username = Secrets::LDAP_USER, $password = Secrets::LDAP_PASSWORD)
+      {
+        $this->username = $username;
+        $this->password = $password;
         // Establish connection to server:
-        $this->connection = ldap_connect(Secrets::LDAP_HOST, Secrets::LDAP_PORT)
-                            or die("Could not connect to " . Secrets::LDAP_HOST);
-        if ($this->connection) {
-          ldap_set_option($this->connection, LDAP_OPT_PROTOCOL_VERSION, 3)
-                          or die('Unable to set LDAP opt protocol version');
-          ldap_set_option($this->connection, LDAP_OPT_REFERRALS, 0)
-                          or die('Unable to set LDAP opt referrals');
+        if (!$this->connection = ldap_connect(Secrets::LDAP_HOST, Secrets::LDAP_PORT)) {
+          throw new \UnexpectedValueException('ldap_connect(' . Secrets::LDAP_HOST .
+                                              ',' .  Secrets::LDAP_PORT . ') failed');
+        }
 
-          // binding to ldap server
-          if (!ldap_bind($this->connection, Secrets::LDAP_USER, Secrets::LDAP_PASSWORD)) {
-            ldap_close($this->connection);	// "logout"
-            $this->connection = NULL;
-            die("Unable to bind to LDAP server " . Secrets::LDAP_HOST);
-          }
+        if (!ldap_set_option($this->connection, LDAP_OPT_PROTOCOL_VERSION, 3)) {
+          throw new \UnexpectedValueException('ldap_set_option(' .
+                                              'LDAP_OPT_PROTOCOL_VERSION) failed ' .
+                                              'with: ' .
+                                              ldap_error($this->connection));
+        }
+
+        if (!ldap_set_option($this->connection, LDAP_OPT_REFERRALS, 0)) {
+          throw new \UnexpectedValueException('ldap_set_option(LDAP_OPT_REFERRALS) ' .
+                                              'failed with: ' .
+                                              ldap_error($this->connection));
+        }
+
+        // binding to ldap server
+        if (!ldap_bind($this->connection, $this->username, $this->password)) {
+          ldap_close($this->connection);	// "logout"
+          throw new \UnexpectedValueException('ldap_bind(...,' . $this->username .
+                                              ',' . $this->password .
+                                              ') failed with: ' .
+                                              ldap_error($this->connection));
         }
       }
 
 
       // Destructor:
-      function __destruct() 
-      { 
+      function __destruct()
+      {
         ldap_close($this->connection);		// "logout"
-        $this->connection = NULL;
       }
 
 
-      function search($query, $attrs)
+      // If login fails then throw an exception, else return user ID #.
+      public function get_userid($user = NULL, $uid_attr = NULL)
+      {
+        if ($user == NULL) {
+          $user = $this->username;
+        }
+
+        if ($uid_attr == NULL) {
+          $uid_attr = Secrets::LDAP_UID_ATTR;
+        }
+
+        $query = "(&(sAMAccountType=" .
+                     ActiveDirectory::SAM_NORMAL_USER_ACCOUNT . ")" .
+                   "(sAMAccountName=" . $user . ")" .
+                   "(userAccountControl:" .
+                     ActiveDirectory::LDAP_MATCHING_RULE_BIT_OR .
+                    ":=" . ActiveDirectory::NORMAL_ACCOUNT . ")" .
+                   "(!(userAccountControl:" .
+                       ActiveDirectory::LDAP_MATCHING_RULE_BIT_OR .
+                      ":=" .
+                       (ActiveDirectory::ACCOUNTDISABLE |
+                        ActiveDirectory::PASSWD_NOTREQD |
+                        ActiveDirectory::PASSWORD_EXPIRED) . ")))";
+
+        $result = $this->search($query, Secrets::LDAP_UID_ATTR);
+
+        if (Secrets::USE_SID) {				// Convert Windows SID:
+          return ActiveDirectory::SID_to_userid($result[$i][Secrets::LDAP_UID_ATTR][0]);
+        } else {					// Else assume Posix user ID:
+          return intval($result[$i][Secrets::LDAP_UID_ATTR][0]);
+        }
+      }
+
+
+      public function search($query, $attrs)
       {
         $total_result = array();
         $total_count = 0;
@@ -148,13 +197,10 @@
           }
 
           $result = ldap_search($this->connection, Secrets::LDAP_DN, $query, $attrs);
-          echo "<p>Error in search query: " . ldap_error($this->connection) . "</p>";
           if ($result) {
             $total_result = array_merge($total_result,
                                         ldap_get_entries($this->connection, $result));
             $total_count += $total_result['count'];	// 'count' gets overwritten.
-            //echo "<p>Sub-result:</p>";
-            //var_dump($total_result);
           }
 
           if (!ldap_control_paged_result_response($this->connection, $result, $cookie)) {
@@ -169,19 +215,35 @@
       }
 
 
+      private static function denied_account($dn)
+      {
+        if (Secrets::DENIED_DNS == NULL or count(Secrets::DENIED_DNS) == 0) {
+          return false;			// Do not deny by default.
+        }
+
+        foreach (Secrets::DENIED_DNS as $pattern) {
+          // MUST USE !== OPERATOR, NOT !=
+          if (stripos($dn, $pattern) !== false) {
+            return true;		// Pattern was matched.  Deny this user.
+          }
+        }
+        return false;			// No patterns matched.  Don't deny user.
+      }
+
+
       public static function allowed_account($dn)
       {
         if (Secrets::ALLOWED_DNS == NULL or count(Secrets::ALLOWED_DNS) == 0) {
-          return true;
+          return !ActiveDirectory::denied_account($dn);
         }
 
         foreach (Secrets::ALLOWED_DNS as $pattern) {
           // MUST USE !== OPERATOR, NOT !=
-          if (strpos($dn, $pattern) !== false) {
-            return true;
+          if (stripos($dn, $pattern) !== false) {	// If user in whitelist:
+            return !ActiveDirectory::denied_account($dn);
           }
         }
-        return false;
+        return false;			// User not in whitelist.  Deny.
       }
 
 
@@ -195,16 +257,14 @@
               . gettype($mask));
         }
 
-        //echo "<br>ActiveDirectory::print_UAC_flags: STARTING<br>";
         $result = "";
         // Iterate over every bitmask:
         foreach (self::$UseraccountcontrolFlags as $key => $value) {
-          //echo "<br>ActiveDirectory::print_UAC_flags: key={$key}, value={$value}<br>";
           if ($mask & $key) {
             $result .= $value . ",";
           }
         }
-        //echo "<br>ActiveDirectory::print_UAC_flags: EXITING, result={$result}<br>";
+
         return $result;
       }
 
@@ -229,7 +289,7 @@
         $identifierAuthority = $sid['id'];
         $subs = isset($sid['count']) ? $sid['count'] : 0;
         if ($subs > 15) {
-          throw new \UnexpectedValueException('SubAuthorityCount exceeds 15.');
+          throw new \OutOfBoundsException('SubAuthorityCount exceeds 15.');
         }
     
         // The sub-authorities depend on the count, so only get as many as

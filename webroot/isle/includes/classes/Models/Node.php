@@ -12,7 +12,8 @@
     
     const NEW_ID = 0; // Should be outside of [ID_MIN..ID_MAX]
     
-    static private $_reservedTypes = array('bool', 'boolean', 'decimal', 'double', 'float', 'int', 'integer', 'string');
+    static private $_reservedTypes = array('bool', 'boolean', 'decimal', 'double',
+                                           'float', 'int', 'integer', 'string');
     
     public function __toString()
     {
@@ -28,7 +29,8 @@
     {
       if (!in_array($name, array_keys(static::getProperties())))
       {
-        throw new Exception('Invalid '.basename(get_class($this)).' property "'.htmlspecialchars($name).'".', Exception::MODEL_INTEGRITY);
+        throw new Exception('Invalid '.basename(get_class($this)).' property "'.
+                            htmlspecialchars($name).'".', Exception::MODEL_INTEGRITY);
       }
       return property_exists($this, $name) ? $this->$name : NULL;
     }
@@ -42,7 +44,8 @@
     {
       if (!in_array($name, array_keys(static::getProperties())))
       {
-        throw new Exception('Invalid '.basename(get_class($this)).' property "'.htmlspecialchars($name).'".', Exception::MODEL_INTEGRITY);
+        throw new Exception('Invalid '.basename(get_class($this)).' property "'.
+                            htmlspecialchars($name).'".', Exception::MODEL_INTEGRITY);
       }
       $this->$name = $value;
     }
@@ -55,7 +58,8 @@
     static protected function _getProperties()
     {
       $props = array();
-      $props["id"] = array('type' => 'int', 'required' => TRUE, 'validator' => 'validateId');
+      $props["id"] = array('type' => 'int', 'required' => TRUE,
+                           'validator' => 'validateId');
       return $props;
     }
 
@@ -90,7 +94,8 @@
       
         foreach (static::getProperties() as $prop => $a)
         {
-          if (is_null($this->$prop) or (is_string($this->$prop) and strlen($this->$prop) == 0))
+          if (is_null($this->$prop) or
+              (is_string($this->$prop) and strlen($this->$prop) == 0))
           {
             if ($a["required"])
             {
@@ -150,7 +155,8 @@
         return self::NEW_ID;
       }
 
-      return Validate::integerRange($id, self::ID_MIN, self::ID_MAX, basename(get_called_class()).' id');
+      return Validate::integerRange($id, self::ID_MIN, self::ID_MAX,
+                                    basename(get_called_class()).' id');
     }
   }
 ?>

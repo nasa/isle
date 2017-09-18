@@ -1,6 +1,7 @@
 <?php
   namespace ISLE\Models;
   
+  use ISLE\Secrets;
   use ISLE\Validate;
   use ISLE\UIException;
   
@@ -36,7 +37,7 @@
     {
       try
       {
-        $t = new \DateTime($time, new \DateTimeZone('America/New_York'));
+        $t = new \DateTime($time, new \DateTimeZone(Secrets::TIME_ZONE));
         return $t->format('Y-m-d H:i:s');
       }
       catch (\Exception $e)
