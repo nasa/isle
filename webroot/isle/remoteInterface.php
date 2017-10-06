@@ -1,4 +1,6 @@
 <?php
+  use ISLE\Secrets;
+  
   try {
     require_once 'includes/auth.php';
     
@@ -10,7 +12,8 @@
     
     //check header for csrfToken, if not valid don't procede.
     $reqHeaders = getallheaders();
-    if(!isset($reqHeaders['x-csrftoken']) || $reqHeaders['x-csrftoken'] !== $csrfToken) {
+    if(!isset($reqHeaders['x-csrftoken']) ||
+       $reqHeaders['x-csrftoken'] !== $csrfToken) {
       throw new ISLE\Exception('Possible CSRF attack.', ISLE\Exception::CSRF);
     }
     
@@ -27,7 +30,8 @@
       //validate fields
       switch($formVals[$fieldNames['type']]) {
         case 'bug':
-          if(isset($formVals[$fieldNames['steps']]) && strlen($formVals[$fieldNames['steps']]) > 2000) {
+          if(isset($formVals[$fieldNames['steps']]) &&
+             strlen($formVals[$fieldNames['steps']]) > 2000) {
             $valErrors['steps'] = '2000 characters max.';
           }
         case 'feature':
@@ -45,7 +49,8 @@
 
       // Process Uploaded Attachment
       if($_FILES[$fieldNames['attachment']]["tmp_name"] != "") {
-        $newfilename = preg_replace('/(\.pdf|\.jpg|\.jpeg|\.png|\.gif)$/', '', $_FILES[$fieldNames['attachment']]["name"]);
+        $newfilename = preg_replace('/(\.pdf|\.jpg|\.jpeg|\.png|\.gif)$/',
+                                    '', $_FILES[$fieldNames['attachment']]["name"]);
         $newfilename = preg_replace('/\W/', '', $newfilename);
         $userfile_tmp = $_FILES[$fieldNames['attachment']]["tmp_name"];
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -86,7 +91,9 @@
       switch($formVals[$fieldNames['type']]) {
         case 'bug':
           if(strpos($_SERVER['HTTP_REFERER'], $rootdir) !== false) {
-            $name = substr($_SERVER['HTTP_REFERER'], strpos($_SERVER['HTTP_REFERER'], $rootdir) + strlen($rootdir));
+            $name = substr($_SERVER['HTTP_REFERER'],
+                           strpos($_SERVER['HTTP_REFERER'], $rootdir) +
+                           strlen($rootdir));
           }
           $desc = 
 '*What happened?*
@@ -165,20 +172,29 @@ _User-Agent:_    '.$userAgent;
           }
 
           if($xmlResp[0]['tag'] != 'ATTACHMENT' || $isError) {
-            //if the attachment upload is successful than send back a success msg. If it's not send back a failure message, and delete the story.
-            //delete story.
+            // If the attachment upload is successful then send back a success
+            // msg. If it's not send back a failure message, and delete the story.
+            // delete story.
             // config-todo: set to your project ID
-            $httpResponse = ISLE\Validate::http_request('DELETE', 'www.pivotaltracker.com', 443, '/services/v3/projects/YOUR_PROJECT_ID/stories/'.$storyId, array(), array(), NULL, array(), array(), $custom_headers, 1, false, false);
+            $httpResponse = ISLE\Validate::http_request('DELETE',
+                                                        'www.pivotaltracker.com',
+                                                        443,
+                                                        '/services/v3/projects/YOUR_PROJECT_ID/stories/'.$storyId,
+                                                        array(), array(), NULL,
+                                                        array(), array(),
+                                                        $custom_headers, 1, false,
+                                                        false);
             throw new ISLE\Exception('An error occurred while submitting feedback attachment.', ISLE\Exception::AJAX);
           }
         }
         exit(prefixJSON(2, json_encode('Feedback successfully submitted.')));
       }
 
-      throw new ISLE\Exception('An error occurred while submitting feedback.', ISLE\Exception::AJAX);
+      throw new ISLE\Exception('An error occurred while submitting feedback.',
+                               ISLE\Exception::AJAX);
     }
-    
-    //whitelist validate GET model.
+
+    // whitelist validate GET model.
     if(!preg_match('/^[a-zA-Z]+$/', $_REQUEST['model'])) {
       throw new ISLE\Exception('Invalid Model', ISLE\Exception::AJAX);
     }
@@ -186,7 +202,7 @@ _User-Agent:_    '.$userAgent;
     if($_REQUEST['model'] !== 'Version') {
       eval('$class = new ISLE\\Models\\' . $_REQUEST['model'] . '();');
     }
-    
+
     switch($_REQUEST['method']) {
       
       case 'add':
@@ -239,7 +255,7 @@ _User-Agent:_    '.$userAgent;
         }
 
         //todo: need to run trim on all the formVals.
-        
+
         if(isset($multiple)){
           foreach($assetIds as $id) {
             foreach($fieldNames as $prop => $a) {
@@ -297,9 +313,10 @@ _User-Agent:_    '.$userAgent;
           </head>
           <body>
             <p>Hi " . htmlspecialchars($formVals[$fieldNames['name']]) . ",</p>
-            <p>&nbsp;&nbsp;You've been given an account on the ISLE application. You can access the application at the following URL:</p>
-            <p><a href='SET_URL_HERE'>SET_URL_HERE</a><br /></p>
-            <p>The ISLE Team</p>
+            <p>&nbsp;&nbsp;You've been given an account on the ISLE application." +
+            " You can access the application at the following URL:</p>
+            <p><a href='" . Secrets::get_url() . "'>" . Secrets::get_url() . "</a><br /></p>
+            <p>" . Secrets::ADMIN_NAME . "</p>
           </body>
           </html>
           ";
@@ -307,7 +324,7 @@ _User-Agent:_    '.$userAgent;
           $headers  = 'MIME-Version: 1.0' . "\r\n";
           $headers .= 'Content-Type: text/html; charset=iso-8859-1' . "\r\n";
           //config-todo: set your name and email here.
-          $headers .= 'From: NAME <EMAIL ADDRESS>' . "\r\n";
+          $headers .= 'From: ' . Secrets::ADMIN_NAME . ' <' . Secrets::ADMIN_EMAIL . '>' . "\r\n";
 
           mail($to, $subject, $message, $headers);
         }
@@ -343,7 +360,10 @@ _User-Agent:_    '.$userAgent;
           $res = $svc->$countMethod($class, $_REQUEST['filter']);
           $ret['count'] = $res['total'];
 
-          $rows = $svc->$_REQUEST['method']($class, $_REQUEST['start'], $_REQUEST['limit'], $_REQUEST['select'], $_REQUEST['distinct'], $_REQUEST['filter'], $_REQUEST['order']);
+          $rows = $svc->$_REQUEST['method']($class, $_REQUEST['start'],
+                                            $_REQUEST['limit'], $_REQUEST['select'],
+                                            $_REQUEST['distinct'],
+                                            $_REQUEST['filter'], $_REQUEST['order']);
 
           if(isset($_REQUEST['tree']) && $_REQUEST['tree'] == "true") {
             $items = array();
@@ -372,15 +392,16 @@ _User-Agent:_    '.$userAgent;
     }
   }
   catch (Exception $e) {
-    //prefix json, pass a generic message.
-    //if it contains sqlstate[23000] send a duplicate message.
+    // prefix json, pass a generic message.
+    // if it contains sqlstate[23000] send a duplicate message.
     $errorMsg = 'server error';
-    if(strpos($e->getMessage(), 'SQLSTATE[23000]')) {
+    if(strpos($e->getMessage(), 'SQLSTATE[23000]') !== False) {
       $errorMsg = 'duplicate';
     }
     
     echo prefixJSON(1, json_encode($errorMsg));
-    //rethrow the exception with a code that indicates to the global exception handler not to send the oops output.
+    // rethrow the exception with a code that indicates to the global
+    // exception handler not to send the oops output.
     
     if(method_exists($e, 'displayOutputOff')) {
       $e->displayOutputOff();
@@ -399,9 +420,13 @@ _User-Agent:_    '.$userAgent;
       case 2:
         $statusTxt = 'success';
         break;
+      default:
+        $statusTxt = "'Unknown=" . $status . "'";
+        break;
     }
     
-    return 'while(1);{"result":{"status":"' . $statusTxt . '", "value":' . $jsonStr . '}}';
+    //return 'while(1);{"result":{"status":"' . $statusTxt . '", "value":' . $jsonStr . '}}';
+    return '{"result":{"status":"' . $statusTxt . '", "value":' . $jsonStr . '}}';
   }
   
   function getVersions($u, $version = null) {

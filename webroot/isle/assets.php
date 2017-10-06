@@ -1,52 +1,56 @@
 <?php
+    require_once 'includes/config.php';
 
-require_once 'includes/config.php';
+    $action = '';
 
-$action = '';
-
-if(isset($_GET['action'])) {
-  $action = $_GET['action'];
-  if(preg_match('/^[0-9]+$/', $action)) {
-    $itemToEdit = $action;
-    $action = 'edit';
-  }
-}
-
-if($action != 'new' && $action != 'edit' && $action != '') {
-  throw new ISLE\Exception('The requested asset action is invalid.', ISLE\Exception::FOUROFOUR);
-}
-
-//if the referer field indicates that it came from the asset list, save the query string in session.
-//if referrer ends with "assets" or if it contains "assets?"
-if(isset($_SERVER['HTTP_REFERER'])) {
-  if(preg_match('/assets$/', $_SERVER['HTTP_REFERER']) || preg_match('/assets\?/', $_SERVER['HTTP_REFERER'])) {
-    $querystring = (strpos($_SERVER['HTTP_REFERER'], "?") ? substr($_SERVER['HTTP_REFERER'], strpos($_SERVER['HTTP_REFERER'], "?")) : '');
-
-    if(!preg_match('/^\?(item|value|search|page)=.*(&(item|value|search|page)=.*)*$/',$querystring)) {
-      $querystring = '';
+    if(isset($_GET['action'])) {
+      $action = $_GET['action'];
+      if(preg_match('/^[0-9]+$/', $action)) {
+        $itemToEdit = $action;
+        $action = 'edit';
+      }
     }
-    $_SESSION['querystring'] = $querystring;
-  }
-}
+
+    if($action != 'new' && $action != 'edit' && $action != '') {
+      throw new ISLE\Exception('The requested asset action is invalid.',
+                               ISLE\Exception::FOUROFOUR);
+    }
+
+    // If the referer field indicates that it came from the asset list, save the
+    // query string in session.
+    // If referrer ends with "assets" or if it contains "assets?"
+    if(isset($_SERVER['HTTP_REFERER'])) {
+      if(preg_match('/assets$/', $_SERVER['HTTP_REFERER']) ||
+         preg_match('/assets\?/', $_SERVER['HTTP_REFERER'])) {
+        $querystring = (strpos($_SERVER['HTTP_REFERER'], "?") ?
+                        substr($_SERVER['HTTP_REFERER'],
+                               strpos($_SERVER['HTTP_REFERER'], "?")) : '');
+
+        if(!preg_match('/^\?(item|value|search|page)=.*(&(item|value|search|page)=.*)*$/',
+                       $querystring)) {
+          $querystring = '';
+        }
+        $_SESSION['querystring'] = $querystring;
+      }
+    }
 
     if(!isset($_SESSION['fromModel'])) {
       unset($_SESSION['addedModel']);
       unset($_SESSION['POST']);
-    }
-    else {
+    } else {
       unset($_SESSION['fromModel']);
     }
 
 
-    
     if($action == 'new' && $u['role'] <= ISLE\Models\Role::USER) {
       $_SESSION['message']['type'] = 'alert-error';
       $_SESSION['message']['text'] = 'You do not have permission to do that.';
       header("Location: " . $rootdir . "assets");
       exit();
     }
-    
-    //setup an array or structure that contains the field names. so you only have one place to update if you want to change them
+
+    // Setup an array or structure that contains the field names. so you only
+    // have one place to update if you want to change them.
     
     $fieldNames['checkoutForm']['asset'] = "hidAssetIdCO";
     $fieldNames['checkoutForm']['location'] = "selLocationCO";
@@ -87,13 +91,16 @@ if(isset($_SERVER['HTTP_REFERER'])) {
       }
 
       //redirect to the model form.
-      if(isset($_POST['addModelBtn']) || isset($_POST[$fieldNames['assetForm']['model']]) && preg_match('/^[0-9]+$/', $_POST[$fieldNames['assetForm']['model']])) {
+      if(isset($_POST['addModelBtn']) ||
+         isset($_POST[$fieldNames['assetForm']['model']]) &&
+         preg_match('/^[0-9]+$/', $_POST[$fieldNames['assetForm']['model']])) {
         savePOST();
         if(isset($itemToEdit)) {
           $_SESSION['fromItem'] = $itemToEdit;
         }
         if(isset($_POST['editModelBtn'])) {
-          header("Location: " . $rootdir . "assetmodels/" . $_POST[$fieldNames['assetForm']['model']]);
+          header("Location: " . $rootdir . "assetmodels/" .
+                 $_POST[$fieldNames['assetForm']['model']]);
         }
         else {
           header("Location: " . $rootdir . "assetmodels/new");
@@ -120,7 +127,8 @@ if(isset($_SERVER['HTTP_REFERER'])) {
       $successMsg = 'Asset deleted successfully.';
     }
     
-    if(isset($_POST['addBtn']) || isset($_POST['updateBtn']) || isset($_POST['deleteBtn'])) {
+    if(isset($_POST['addBtn']) || isset($_POST['updateBtn']) ||
+       isset($_POST['deleteBtn'])) {
       $class = new ISLE\Models\Asset();
       //todo: refactor into a separate function, or maybe put it in one place like auth.php.
       if(!isset($_POST['csrfToken']) || $_POST['csrfToken'] !== $csrfToken) {
@@ -148,8 +156,10 @@ if(isset($_SERVER['HTTP_REFERER'])) {
         if(!isset($_POST['deleteBtn'])) {
  
           // Validate file type
-          if($_FILES[$othFieldNames['attachment']]["error"] == UPLOAD_ERR_OK && $_FILES[$othFieldNames['attachment']]["tmp_name"] != "") {
-            $newfilename = preg_replace('/\.pdf$/', '', $_FILES[$othFieldNames['attachment']]["name"]);
+          if($_FILES[$othFieldNames['attachment']]["error"] == UPLOAD_ERR_OK &&
+             $_FILES[$othFieldNames['attachment']]["tmp_name"] != "") {
+            $newfilename = preg_replace('/\.pdf$/', '',
+                                        $_FILES[$othFieldNames['attachment']]["name"]);
             $newfilename = preg_replace('/\W/', '', $newfilename);
             $userfile_tmp = $_FILES[$othFieldNames['attachment']]["tmp_name"];
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -165,13 +175,15 @@ if(isset($_SERVER['HTTP_REFERER'])) {
                 throw new ISLE\UIException('One or more errors occurred', $valErrors);
             }
             
-            if(! (intval($_POST[$othFieldNames['attachmentNum']]) >= 0) || $newfilename == '') {
+            if(! (intval($_POST[$othFieldNames['attachmentNum']]) >= 0) ||
+               $newfilename == '') {
               throw new ISLE\Exception('There was a problem with the attachmentNum or newfilename vars.', ISLE\Exception::UPLOAD);
             }
           }
           
           // Validate file size.
-          if($_FILES[$othFieldNames['attachment']]["error"] == UPLOAD_ERR_INI_SIZE || $_FILES[$othFieldNames['attachment']]["error"] == UPLOAD_ERR_FORM_SIZE) {
+          if($_FILES[$othFieldNames['attachment']]["error"] == UPLOAD_ERR_INI_SIZE ||
+             $_FILES[$othFieldNames['attachment']]["error"] == UPLOAD_ERR_FORM_SIZE) {
             $uploadMax = ini_get('upload_max_filesize');
             $postMax = ini_get('post_max_size');
             $maxSize = $uploadMax - $postMax > 0 ? $postMax : $uploadMax;
@@ -180,7 +192,8 @@ if(isset($_SERVER['HTTP_REFERER'])) {
           }
 
           // Catch other file upload errors.
-          if($_FILES[$othFieldNames['attachment']]["error"] > 0 && $_FILES[$othFieldNames['attachment']]["error"] != UPLOAD_ERR_NO_FILE) {
+          if($_FILES[$othFieldNames['attachment']]["error"] > 0 &&
+             $_FILES[$othFieldNames['attachment']]["error"] != UPLOAD_ERR_NO_FILE) {
             throw new ISLE\Exception('An unknown error occurred while trying to upload an asset attachment file.', ISLE\Exception::UPLOAD);
           }
           
@@ -200,7 +213,8 @@ if(isset($_SERVER['HTTP_REFERER'])) {
                 $attNum = $tmp[1];
 
                 if(!unlink($attachment_location . '/' . $removeAtt)) {
-                  throw new ISLE\Exception('Could delete asset attachment.', ISLE\Exception::UPLOAD);
+                  throw new ISLE\Exception('Could delete asset attachment.',
+                                           ISLE\Exception::UPLOAD);
                 }
 
                 $class5 = new ISLE\Models\AssetAttachment();
@@ -241,7 +255,8 @@ if(isset($_SERVER['HTTP_REFERER'])) {
               if ($entry != "." && $entry != "..") {
                 if(preg_match($pat, $entry)) {
                   if(!unlink($attachment_location . '/' . $entry)) {
-                    throw new ISLE\Exception('Could delete asset attachment.', ISLE\Exception::UPLOAD);
+                    throw new ISLE\Exception('Could delete asset attachment.',
+                                             ISLE\Exception::UPLOAD);
                   }
                 }
               }
@@ -251,10 +266,14 @@ if(isset($_SERVER['HTTP_REFERER'])) {
         }
         else {
           // Process Uploaded File
-          if($_FILES[$othFieldNames['attachment']]["error"] == UPLOAD_ERR_OK && $_FILES[$othFieldNames['attachment']]["tmp_name"] != "") {
-            //change name of file. only accept pdf. check contents for mime. disable direct access and use a proxy script to provide access. make sure files do not have execute permission.
+          if($_FILES[$othFieldNames['attachment']]["error"] == UPLOAD_ERR_OK &&
+             $_FILES[$othFieldNames['attachment']]["tmp_name"] != "") {
+            //change name of file. only accept pdf. check contents for mime.
+            //disable direct access and use a proxy script to provide access.
+            //make sure files do not have execute permission.
 
-            //the highest num for this asset is sent in a hidden field. add 1 to this and use for filename. asset_num.pdf
+            //the highest num for this asset is sent in a hidden field.
+            //add 1 to this and use for filename. asset_num.pdf
             $attachmentNum = intval($_POST[$othFieldNames['attachmentNum']]) + 1;
             $attachment_location .= '/' . $addedAsset . '_' . $attachmentNum . $fileExt;
             if(!move_uploaded_file($userfile_tmp, $attachment_location)) {
@@ -290,7 +309,8 @@ if(isset($_SERVER['HTTP_REFERER'])) {
           
         }
         if(isset($_POST['deleteBtn']) && isset($_POST['fromJS'])) {
-          exit('while(1);{"result":{"status":"success", "value":"Asset deleted successfully."}}');
+          //exit('while(1);{"result":{"status":"success", "value":"Asset deleted successfully."}}');
+          exit('{"result":{"status":"success", "value":"Asset deleted successfully."}}');
         }
         exit();
 
@@ -397,7 +417,8 @@ if(isset($_SERVER['HTTP_REFERER'])) {
       $filter['cols'][0]['val'] = $itemToEdit;
       $order[0]['col'] = 'num';
       //get list of attachments from db, so ui can load into dropdown.
-      $attachments = $svc->getAll($attachmentsClass, null, null, null, null, $filter, $order);
+      $attachments = $svc->getAll($attachmentsClass, null, null, null, null,
+                                  $filter, $order);
     }
     
     if($action == '') {
@@ -414,24 +435,32 @@ if(isset($_SERVER['HTTP_REFERER'])) {
       }
     }
     
-    $tmpl_headcontent = "<title>ISLE: " . ISLE\Service::getInstanceName() . " - Assets</title>";
+    $tmpl_headcontent = "<title>ISLE: " . ISLE\Service::getInstanceName() .
+                        " - Assets</title>";
     
     switch($action) {
       case 'new':
-        $tmpl_headcontent = "<title>ISLE: " . ISLE\Service::getInstanceName() . " - Add Asset</title>";
+        $tmpl_headcontent = "<title>ISLE: " . ISLE\Service::getInstanceName() .
+                            " - Add Asset</title>";
         break;
       case 'edit':
-        $tmpl_headcontent = "<title>ISLE: " . ISLE\Service::getInstanceName() . " - Edit Asset " . $itemToEdit . "</title>";
+        $tmpl_headcontent = "<title>ISLE: " . ISLE\Service::getInstanceName() .
+                            " - Edit Asset " . $itemToEdit . "</title>";
         break;
     }
     
     $tmpl_headcontent .= $tmpl_headcontent_main;
     if ($action == '') {
-      $tmpl_headcontent .= '<!--[if lt IE 8]><link rel="stylesheet" type="text/css" href="' . auto_version($stylesPath . 'list_ie7.css') . '" /><![endif]-->';
-      $tmpl_headcontent .= '<!--[if gte IE 8]><!--><link rel="stylesheet" type="text/css" href="' . auto_version($stylesPath . 'list.css') . '" /><!--<![endif]-->';
+      $tmpl_headcontent .= '<!--[if lt IE 8]><link rel="stylesheet" type="text/css" href="' .
+                           auto_version($stylesPath . 'list_ie7.css') .
+                           '" /><![endif]-->';
+      $tmpl_headcontent .= '<!--[if gte IE 8]><!--><link rel="stylesheet" type="text/css" href="' .
+                           auto_version($stylesPath . 'list.css') .
+                           '" /><!--<![endif]-->';
     }
     else {
-      $tmpl_headcontent .= '<link rel="stylesheet" type="text/css" href="' . auto_version($stylesPath . 'views/assets.css') . '" />';
+      $tmpl_headcontent .= '<link rel="stylesheet" type="text/css" href="' .
+                           auto_version($stylesPath . 'views/assets.css') . '" />';
     }
     
     $tmpl_javascripts = $tmpl_javascripts_main;
@@ -449,7 +478,8 @@ if(isset($_SERVER['HTTP_REFERER'])) {
     
     if(!isset($_POST['fromJS'])) {
       if(isset($_SESSION['querystring'])){
-        echo '<script>var querystring = "' . javascript_escape($_SESSION['querystring']) . '";</script>';
+        echo '<script>var querystring = "' . javascript_escape($_SESSION['querystring']) .
+             '";</script>';
       }
       else {
         echo '<script>var querystring = "";</script>';

@@ -77,7 +77,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
       }
     }
 
-    NodeMgr.intialize(options);
+    NodeMgr.initialize(options);
     
     $('#container').on('click keypress', '#showAll, #VerColMenu span.selector', function(e){
       if(e.type == 'click' || (e.type == 'keypress' && e.which == 13)) {

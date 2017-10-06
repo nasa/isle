@@ -1,3 +1,4 @@
 <?php
-  header('Location: assets');
+  //header('Location: assets');
+  header('Location: login');
 ?>

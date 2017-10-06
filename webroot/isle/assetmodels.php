@@ -454,7 +454,8 @@
         }
         
         if(isset($_POST['deleteBtn']) && isset($_POST['fromJS'])) {
-          exit('while(1);{"result":{"status":"success", "value":"Asset model deleted successfully."}}');
+          //exit('while(1);{"result":{"status":"success", "value":"Asset model deleted successfully."}}');
+          exit('{"result":{"status":"success", "value":"Asset model deleted successfully."}}');
         }
         exit();
       }

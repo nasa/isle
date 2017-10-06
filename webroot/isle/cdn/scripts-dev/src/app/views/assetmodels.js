@@ -210,7 +210,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
       }
     };
 
-    NodeMgr.intialize(options);
+    NodeMgr.initialize(options);
     
     $( "#" + options.fieldNames['attribute'] ).combobox({
       selected: function(event, ui) {
@@ -292,7 +292,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
       }
     };
 
-    NodeMgr2.intialize(roptions);
+    NodeMgr2.initialize(roptions);
     
     if($('html').attr('data-role') >= ISLE_CONTRIBUTOR) {
     
@@ -314,7 +314,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
         }
       }
 
-      NodeMgrMfr.intialize(optionsMfr);
+      NodeMgrMfr.initialize(optionsMfr);
 
       var NodeMgrRelation = new NodeManager();
 
@@ -334,7 +334,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
         }
       }
 
-      NodeMgrRelation.intialize(optionsRelation);
+      NodeMgrRelation.initialize(optionsRelation);
       
       //todo: replace these handlers with a common reusable function.
       $('#' + optionsRelation.dialogId).on('shown', function() {

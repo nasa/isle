@@ -21,15 +21,19 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
         $.each(retVal['items'], function(index, val){
           editTableCol = '';
           if($('html').attr('data-role') >= ISLE_CONTRIBUTOR) {
-            editTableCol = '<td><span role="button" tabindex="0" id="' + val['id'] + '" title="Edit"><i class="icon-edit"></i></span></td>';
+            editTableCol = '<td><span role="button" tabindex="0" id="' + val['id'] +
+			   '" title="Edit"><i class="icon-edit"></i></span></td>';
           }
           
           tableHTML += '<tr>' + editTableCol;
           
-          tableHTML += '<td><a href="' + Util.rootdir + 'assets?item=manufacturer&value='+ val['id'] + '">' + Util.htmlEncode(Util.abbreviate(val['name'], 100)) + '</a>';
+          tableHTML += '<td><a href="' + Util.rootdir +
+                       'assets?item=manufacturer&value='+ val['id'] + '">' +
+                       Util.htmlEncode(Util.abbreviate(val['name'], 100)) + '</a>';
           
           if(val['url'] !== null && val['url'].length > 0) {
-            tableHTML += ' <a href="' + Util.htmlEncode(val['url']) + '" aria-label="link to manufacturer website" target="_blank"><i class="icon-globe"></i></a></td>';
+            tableHTML += ' <a href="' + Util.htmlEncode(val['url']) +
+                         '" aria-label="link to manufacturer website" target="_blank"><i class="icon-globe"></i></a></td>';
           }
           else {
             tableHTML += '</td>';
@@ -54,6 +58,6 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
       rowsClickable: rowsClickable
     }
 
-    NodeMgr.intialize(options);
+    NodeMgr.initialize(options);
   });
 });

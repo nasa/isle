@@ -14,11 +14,16 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
         var nameText = '';
 
         $.each(retVal['items'], function(index, val){
-          nameText = '<a href="' + Util.rootdir + 'assets?item=user&value=' + Util.htmlEncode(val['uid']) + '">' + Util.htmlEncode(val['name']) + '</a>';
+          nameText = '<a href="' + Util.rootdir + 'assets?item=user&value=' +
+                     Util.htmlEncode(val['uid']) + '">' + Util.htmlEncode(val['name']) +
+                     '</a>';
           if(val['email'] != null) {
-            nameText += ' <a href="mailto:' + Util.htmlEncode(val['email']) + '" aria-label="send email to user"><i class="icon-envelope"></i></a>';
+            nameText += ' <a href="mailto:' + Util.htmlEncode(val['email']) +
+                        '" aria-label="send email to user"><i class="icon-envelope"></i></a>';
           }
-          tableHTML += '<tr><td><span role="button" tabindex="0" id="' + val['id'] + '" title="Edit"><i class="icon-edit"></i></span></td><td>' + nameText + '</td>';
+          tableHTML += '<tr><td><span role="button" tabindex="0" id="' + val['id'] +
+                       '" title="Edit"><i class="icon-edit"></i></span></td><td>' +
+                       nameText + '</td>';
           tableHTML += '<td>' + val['Role_name'] + '</td></tr>';
           
         });
@@ -39,10 +44,12 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
         var emailVal = rowData['email'];
         var roleVal = rowData['role'];
         
-        //after the select combo box add the employee name text and a hidden form field and set value to the empno. then remove the combobox from the dom.
+        // After the select combo box add the employee name text and a hidden form
+        // field and set value to the empno. then remove the combobox from the dom.
         $('#labEmail').hide();
         $('#readOnlyUser').remove();
         $('#modalDialog select[name="' + this.fieldNames['uid'] + '"]').after('<span id="readOnlyUser">' + Util.htmlEncode(nameVal) + '</span>');
+//        $('#modalDialog select option[value="' + uidVal + '"]').attr('<span id="readOnlyUser">' + Util.htmlEncode(nameVal) + '</span>');
         $('#modalDialog .ui-combobox').hide();
 
         $('#modalDialog input[name="' + this.fieldNames['id'] + '"]').val(idVal);
@@ -62,7 +69,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
       firstFocus: 'select'
     }
 
-    NodeMgr.intialize(options);
+    NodeMgr.initialize(options);
     
     $('#' + options.fieldNames['uid']).combobox({
       selected: function(event, ui) {

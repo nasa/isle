@@ -1,6 +1,9 @@
 <?php
   session_start();
   require_once 'includes/error.php';
+  //require_once 'includes/classes/ActiveDirectory.php';
+  use ISLE\ActiveDirectory;
+  use ISLE\Secrets;
 
   $csrfToken = base64_encode(hash("sha256", session_id()));
 
@@ -14,34 +17,69 @@
   $svc = new ISLE\Service();
   if (isset($_GET["logout"]))
   {
+    echo "<br/>Logging out " . $_SESSION["user"] . "<br/>";
+    $_SESSION['message']['type'] = 'alert-error';
+    $_SESSION['message']['text'] = 'LOGGED OUT';
     unset($_SESSION["user"]);
+    $u = array('role' => ISLE\Models\Role::DISABLED);
   }
-  if (!isset($_SESSION["user"]))
-  {
-    //Store as power/User object in session.
-    try
-    {
-      // config-todo: replace 111111111 with whatever ID the auth mechanism you
-      // use returns when successful.
-      $_SESSION["user"] = 1;
-    } catch (Exception $e)
-    {
-      echo $e->getMessage();
+
+  $just_logged_in = False;
+  if (!isset($_SESSION["user"]) and isset($_POST["username"]) and
+      isset($_POST["password"])) {
+    if ($_POST["username"] == Secrets::ADMIN_USER) {
+      if ($_POST["password"] == Secrets::ADMIN_PASSWORD) {
+        $_SESSION["user"] = Secrets::ADMIN_UID;
+        $_POST["password"] = null;	// *** NEED TO FLAG NO NEW LOGIN.
+        $just_logged_in = True;
+      } else {
+        login_error('Thou shalt not hack the ' . Secrets::ADMIN_USER . ' account.');
+        $_POST["password"] = null;	// *** NEED TO FLAG NO NEW LOGIN.
+        exit;
+      }
+    } else {				// Logging into non-admin account:
+      try {
+        $_SESSION["user"] = ISLE\ActiveDirectory::authenticate_user($_POST["username"],
+                                                                    $_POST["password"]);
+        $_POST["password"] = null;	// *** NEED TO FLAG NO NEW LOGIN.
+        $just_logged_in = True;
+      } catch (Exception $e) {
+        login_error('Incorrect user name or password.');
+        //echo '<br/>' . $e . '<br/>';
+        $_POST["password"] = null;	// *** NOT SURE IF POST IS CLEARED EVERY
+        exit;				// *** TIME. NEED TO FLAG NO NEW LOGIN.
+      }
     }
   }
 
   $user = $_SESSION["user"];
+  if (isset($user) and $user != 0) {
+    $userClass = new ISLE\Models\User();
+    $filter['cols'][0]['col'] = 'uid';
+    $filter['cols'][0]['val'] = $user;
+    // Get user from db... EVERY FREAKIN' TIME?!
+    $u = $svc->getAll($userClass, null, null, null, null, $filter);
+    if (count($u) == 0 or $u[0]['role'] == ISLE\Models\Role::DISABLED) {
+      login_error('User ' . $u[0]["name"] . ' is not authorized for access.');
+      exit;
+    } else {
+      $u = $u[0];
+    }
+  }
 
-  $userClass = new ISLE\Models\User();
-  $filter['cols'][0]['col'] = 'uid';
-  $filter['cols'][0]['val'] = $user;
-  //get user from db.
-  $u = $svc->getAll($userClass, null, null, null, null, $filter);
-  if(count($u) == 0 || $u[0]['role'] == ISLE\Models\Role::DISABLED) {
-    echo 'User <i>'.$user.'</i> is not authorized.';
+  if ($just_logged_in) {
+    $just_logged_in = False;
+    header("Location: " . $rootdir . "assets");
     exit;
   }
-  else {
-    $u = $u[0];
+
+  function login_error($msg = null) 
+  {
+    if ($msg == null) {
+      $msg = 'Incorrect user name or password.';
+    }
+    $_SESSION['message']['type'] = 'alert-error';
+    $_SESSION['message']['text'] = $msg;
+    header("Location: " . $rootdir . "login");
   }
 ?>

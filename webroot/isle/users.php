@@ -15,7 +15,7 @@
       header("Location: " . $rootdir . "assets");
       exit;
     }
-    
+
     // setup an array or structure that contains the field names.
     // so you only have one place to update if you want to change them
     $fieldNames['id'] = "id";
@@ -23,29 +23,19 @@
     $fieldNames['name'] = "hidName";
     $fieldNames['email'] = "hidEmail";
     $fieldNames['role'] = "selRole";
-    
+
     // config-todo: set $employees to an array of employees.
-    //$employees = array( array( 'FULL_NAME' => "admin", 'EMPLOYEENUMBER' => 1,
-    //                           'PRIMARYEMAIL' => Secrets::ADMIN_EMAIL ) );
     $employees = array();
+    $employees[] = array( 'FULL_NAME'      => Secrets::ADMIN_USER,
+                          'EMPLOYEENUMBER' => Secrets::ADMIN_UID,
+                          'PRIMARYEMAIL'   => Secrets::ADMIN_EMAIL );
 
     $ldap_attrs = array( "samaccountname", "samaccounttype", "useraccountcontrol",
                          "mail", Secrets::LDAP_UID_ATTR );
+    $extra = "(!(objectCategory=computer))(!(samAccountName=sa_*))(!(samAccountName=priv_*))";
     // Search for an account that is a normal user
     // AND (is not disabled or password is not required).
-    $ldap_expr = "(&(sAMAccountType=" .
-                     ActiveDirectory::SAM_NORMAL_USER_ACCOUNT . ")" .
-                   "(!(objectCategory=computer))" .
-                   "(userAccountControl:" .
-                     ActiveDirectory::LDAP_MATCHING_RULE_BIT_OR .
-                     ":=" . ActiveDirectory::NORMAL_ACCOUNT . ")" .
-                   "(!(samAccountName=sa_*))(!(samAccountName=priv_*))" .
-                   "(!(userAccountControl:" .
-                       ActiveDirectory::LDAP_MATCHING_RULE_BIT_OR .
-                       ":=" .
-                       (ActiveDirectory::ACCOUNTDISABLE |
-                        ActiveDirectory::PASSWD_NOTREQD |
-                        ActiveDirectory::PASSWORD_EXPIRED) . ")))";
+    $ldap_expr = ActiveDirectory::user_query_string('*', $extra);
 
     // Establish connection to server:
     $ldap = new ActiveDirectory();
@@ -94,6 +84,7 @@
     //echo "<p>DUMPING USER DATABASE:</p>";
     //var_dump($users);
 
+/*
     $employees = array_filter($employees,
                               function ($employee) use ($users) {
                                 foreach ($users as $usr) {
@@ -103,6 +94,7 @@
                                 }
                                 return True;
                               });
+*/
 
     usort($employees, function ($emp1, $emp2) {
                         return strcasecmp($emp1['FULL_NAME'], $emp2['FULL_NAME']);

@@ -2,7 +2,7 @@ define(["jquery", "./Util"], function($, Util) {
   
   var NodeManager = function() {
     
-    this.intialize = function(options) {
+    this.initialize = function(options) {
       var that = this;
 
       that.props = {};

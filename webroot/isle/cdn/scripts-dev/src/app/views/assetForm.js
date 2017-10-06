@@ -369,7 +369,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
         }
       }
 
-      NodeMgr.intialize(options);
+      NodeMgr.initialize(options);
 
       $( "#" + options.fieldNames[0].finish ).datepicker({
         showOn: "button",
@@ -406,7 +406,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
           }
         }
 
-        NodeMgrLocation.intialize(optionsLocation);
+        NodeMgrLocation.initialize(optionsLocation);
 
         var opts = {
           fieldNames: optionsLocation.fieldNames,

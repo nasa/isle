@@ -204,7 +204,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
       }
     });
 
-    NodeMgr.intialize(options);
+    NodeMgr.initialize(options);
 
     $('#showAll, #VerColMenu span.selector').on('click keypress', function(e){
       if(e.type == 'click' || (e.type == 'keypress' && e.which == 13)) {
@@ -449,7 +449,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
         }
       }
 
-      NodeMgrLocation.intialize(optionsLocation);
+      NodeMgrLocation.initialize(optionsLocation);
 
       $('#' + optionsLocation.dialogId).on('shown', function() {
         //increase the z-index of the modal and its backdrop +20

@@ -1,4 +1,5 @@
 <?php
+    use ISLE\AuthMode;
     use ISLE\Secrets;
 
     namespace ISLE;
@@ -104,6 +105,7 @@
         self::INST_NAMING_CNTXT_REMOVED_FROM_DSA=> "INST_NAMING_CNTXT_REMOVED_FROM_DSA",
       );
 
+
       // Stores connection to server:
       private $connection;
       private $username;	// Use distinguishedName, not sAMAccountName?
@@ -111,10 +113,17 @@
 
 
       // Constructor:  *** MAY NOT WORK IF SAMACCOUNTNAME PASSED INSTEAD OF DN: ***
-      function __construct($username = Secrets::LDAP_USER, $password = Secrets::LDAP_PASSWORD)
+      function __construct($username = null, $password = null)
       {
+        if ($username == null) {		// PHP is too stupid to allow class
+          $username = Secrets::LDAP_USER;	// members as function parameter defaults.
+        }
+        if ($password == null) {
+          $password = Secrets::LDAP_PASSWORD;
+        }
         $this->username = $username;
         $this->password = $password;
+        echo "username = " . $username . ", password = " . $password . "<br>";
         // Establish connection to server:
         if (!$this->connection = ldap_connect(Secrets::LDAP_HOST, Secrets::LDAP_PORT)) {
           throw new \UnexpectedValueException('ldap_connect(' . Secrets::LDAP_HOST .
@@ -136,7 +145,7 @@
 
         // binding to ldap server
         if (!ldap_bind($this->connection, $this->username, $this->password)) {
-          ldap_close($this->connection);	// "logout"
+          //ldap_close($this->connection);	// "logout"
           throw new \UnexpectedValueException('ldap_bind(...,' . $this->username .
                                               ',' . $this->password .
                                               ') failed with: ' .
@@ -152,6 +161,80 @@
       }
 
 
+      public static function authenticate_user($user, $password)
+      {
+        // NEED TO SANITIZE $user OF WILDCARDS.
+        $auth_user = "";
+
+        switch (Secrets::AUTH_MODE) {
+          case AuthMode::USE_DN:		// Full DistinguishedName.
+            try {
+              $ad = new ActiveDirectory();	// Bind with default credentials.
+              $query = ActiveDirectory::user_query_string($user);
+              $auth_user = $ad->search($query, array("distinguishedname"))[0]["distinguishedname"];
+            } catch (Exception $e) {
+              // *** ERROR ***
+              die("authenticate_user failed: " . ldap_error($ad) . ", " .
+                  $e->getMessage());
+            }
+            break;
+
+          case AuthMode::USE_NAME:
+            // Nothing to do.  $user should be correct.
+            $auth_user = $user;
+            break;
+
+          case AuthMode::USE_NAME_AT_DOMAIN:	// Windows user@domain.
+            if (Secrets::WIN_DOMAIN == null or Secrets::WIN_DOMAIN == "") {
+              // *** ERROR ***
+              die("authenticate_user failed: Secrets::WIN_DOMAIN is blank.");
+            }
+            $auth_user = sprintf("%s@%s", $user, Secrets::WIN_DOMAIN);
+            break;
+
+          case AuthMode::USE_DOMAIN_SLASH_NAME:	// Windows domain\user.
+            if (Secrets::WIN_DOMAIN == null or Secrets::WIN_DOMAIN == "") {
+              // *** ERROR ***
+              die("authenticate_user failed: Secrets::WIN_DOMAIN is blank.");
+            }
+            $auth_user = sprintf("%s\\%s", Secrets::WIN_DOMAIN, $user);
+            break;
+
+          default:
+            // *** ERROR ***
+            die("authenticate_user failed: Secrets::AUTH_MODE = " .
+                Secrets::AUTH_MODE);
+            break;
+        }
+
+        try {
+          $ad = new ActiveDirectory($auth_user, $password);
+          return $ad->get_userid($user);
+
+        } catch (Exception $e) {
+          // *** ERROR ***
+          die("authenticate_user failed: couldn't get userid, " . $e->getMessage());
+        }
+      }
+
+
+      public static function user_query_string($user, $more_restrictions = "") {
+        return "(&(sAMAccountType=" .
+                   ActiveDirectory::SAM_NORMAL_USER_ACCOUNT . ")" .
+                 "(sAMAccountName=" . $user . ")" .
+                 "(userAccountControl:" .
+                   ActiveDirectory::LDAP_MATCHING_RULE_BIT_OR .
+                   ":=" . ActiveDirectory::NORMAL_ACCOUNT . ")" .
+                 "(!(userAccountControl:" .
+                     ActiveDirectory::LDAP_MATCHING_RULE_BIT_OR .
+                    ":=" .
+                     (ActiveDirectory::ACCOUNTDISABLE |
+                      ActiveDirectory::PASSWD_NOTREQD |
+                      ActiveDirectory::PASSWORD_EXPIRED) . "))" .
+                  $more_restrictions . ")";
+      }
+
+
       // If login fails then throw an exception, else return user ID #.
       public function get_userid($user = NULL, $uid_attr = NULL)
       {
@@ -163,50 +246,57 @@
           $uid_attr = Secrets::LDAP_UID_ATTR;
         }
 
-        $query = "(&(sAMAccountType=" .
-                     ActiveDirectory::SAM_NORMAL_USER_ACCOUNT . ")" .
-                   "(sAMAccountName=" . $user . ")" .
-                   "(userAccountControl:" .
-                     ActiveDirectory::LDAP_MATCHING_RULE_BIT_OR .
-                    ":=" . ActiveDirectory::NORMAL_ACCOUNT . ")" .
-                   "(!(userAccountControl:" .
-                       ActiveDirectory::LDAP_MATCHING_RULE_BIT_OR .
-                      ":=" .
-                       (ActiveDirectory::ACCOUNTDISABLE |
-                        ActiveDirectory::PASSWD_NOTREQD |
-                        ActiveDirectory::PASSWORD_EXPIRED) . ")))";
-
+        $query = ActiveDirectory::user_query_string($user);
         $result = $this->search($query, Secrets::LDAP_UID_ATTR);
+echo("<br/>get_userid() search result = ");
+        var_dump($result);
 
         if (Secrets::USE_SID) {				// Convert Windows SID:
-          return ActiveDirectory::SID_to_userid($result[$i][Secrets::LDAP_UID_ATTR][0]);
+          return ActiveDirectory::SID_to_userid($result[0][Secrets::LDAP_UID_ATTR][0]);
         } else {					// Else assume Posix user ID:
-          return intval($result[$i][Secrets::LDAP_UID_ATTR][0]);
+          return intval($result[0][Secrets::LDAP_UID_ATTR][0]);
         }
       }
 
 
       public function search($query, $attrs)
       {
+        if (is_string($attrs)) {
+          $attrs = array($attrs);
+        }
+
         $total_result = array();
         $total_count = 0;
         $cookie = '';
         do {
-          if (!ldap_control_paged_result($this->connection, 1000, true, $cookie)) {
-            die("ldap_control_paged_result failed!");
+          if (!ldap_control_paged_result($this->connection, 1000, false, $cookie)) {
+            die("ldap_control_paged_result failed: " . ldap_error($this->connection));
           }
 
           $result = ldap_search($this->connection, Secrets::LDAP_DN, $query, $attrs);
-          if ($result) {
-            $total_result = array_merge($total_result,
-                                        ldap_get_entries($this->connection, $result));
+          if ($result !== false) {			// 0 == false, but 0 !== false.
+            $sub_result = ldap_get_entries($this->connection, $result);
+            if ($sub_result === false) {		// PHP sucks.
+                die("ActiveDirectory#search ldap_get_entries failed: " .
+                    ldap_error($this->connection));
+            }
+            $total_result = array_merge($total_result, $sub_result);
             $total_count += $total_result['count'];	// 'count' gets overwritten.
+          } else {
+            echo('<br/>$query = ' . $query . '<br/>');
+            var_dump($attrs);
+            die("ActiveDirectory#search ldap_search failed: " .
+                ldap_error($this->connection));
           }
 
-          if (!ldap_control_paged_result_response($this->connection, $result, $cookie)) {
-            die("ldap_control_paged_result_response failed!");
+          // *** GETTING FALSE EVEN THOUGH THERE IS NO ERROR ***
+          ldap_control_paged_result_response($this->connection, $result, $cookie);
+/*          if (!ldap_control_paged_result_response($this->connection, $result, $cookie)) {
+            die("ldap_control_paged_result_response failed: " .
+                ldap_error($this->connection));
           }
-        } while ($cookie != null && $cookie != '');
+*/
+        } while ($cookie !== null && $cookie != '');
 
         $total_result['count'] = $total_count;
         //echo "<p>Total Result:</p>";
@@ -278,7 +368,9 @@
         $sid = @unpack('C1rev/C1count/x2/N1id', $value);
         $subAuthorities = [];
     
-        if (!isset($sid['id']) || !isset($sid['rev'])) {
+        if (!isset($sid['id']) or !isset($sid['rev'])) {
+          var_dump($sid);
+          die("-------------------------------");
           throw new \UnexpectedValueException(
                       'The revision level or identifier authority was not ' .
                       'found when decoding the SID.'
@@ -307,7 +399,7 @@
       }
 
 
-      public static function match_subauth($sid_array, $comp_array)
+      private static function match_subauth($sid_array, $comp_array)
       {
         $len = count($comp_array);
         if (count($sid_array) < $len + 3) {
@@ -329,7 +421,7 @@
         // If sid is a packed, binary string:
         if (strncmp($sid, "S-", 2) != 0)
         {
-            $sid = ActiveDirectory::SID_to_string($sid);
+          $sid = ActiveDirectory::SID_to_string($sid);
         }
 
         // sid is now a human-readable string:
@@ -344,6 +436,9 @@
             intval($fields[1]) != Secrets::SID_REV_LVL or 
             intval($fields[2]) != Secrets::SID_ID_AUTH or
             !ActiveDirectory::match_subauth($fields, Secrets::SID_SUBAUTH)) {
+          echo("<br/>In SID_to_userid() !!!!!!!!!!!!!!! <br/>");
+          var_dump($sid);
+          exit();
           throw new \UnexpectedValueException('Malformed SID.');
         }
 
