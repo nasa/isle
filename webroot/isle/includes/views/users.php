@@ -28,7 +28,7 @@
     <input type="hidden" name="<?php echo $fieldNames['id']; ?>"
            id="<?php echo $fieldNames['id']; ?>" value="" />
     <div class="modal-body">
-    
+
       <div class="formItem first">
         <label for="<?php echo $fieldNames['uid']; ?>">User</label>
         <select name="<?php echo $fieldNames['uid']; ?>"
@@ -36,13 +36,13 @@
           <option value="">-- Select a user</option>
             <!-- populate with data from database -->
             <?php
-              echo "<!-- LOOKING FOR: '" . $_POST[$fieldNames['uid']] . "' -->\n";
+              $target_id = $formVals[$fieldNames['uid']];
+              echo "<!-- LOOKING FOR: '" . $target_id . "' -->\n";
               foreach($employees as $employee) {
                 $selected = '';
                 echo "    <!-- ID='" . $employee['EMPLOYEENUMBER'] . "' -->\n";
-                if (isset($_POST[$fieldNames['uid']]) and
-                    intval($_POST[$fieldNames['uid']]) ==
-                    intval($employee['EMPLOYEENUMBER'])) {
+                if (isset($target_id) and
+                    (intval($target_id) == intval($employee['EMPLOYEENUMBER']))) {
                   $selected = ' selected="selected"';
                   echo("<!-- FOUND MATCH " . $employee['EMPLOYEENUMBER'] . " -->\n"); 
                 }

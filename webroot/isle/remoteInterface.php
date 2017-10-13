@@ -1,32 +1,76 @@
 <?php
   use ISLE\Secrets;
-  
+
+  // Responds to incoming requests.
+  //
+  // API:
+  //   method=logout
+  //   method=feedback
+  //                  &type=bug&steps=S            # length of S <= 2000
+  //                  &type=feature&description=D[&attachment=?]
+  //                  &type=chore&description=D[&attachment=?]
+  //   method=add
+  //             &model=User[&chkEmail=EMAIL]
+  //   method=update
+  //   method=delete
+  //                &model=Version
+  //                &model=User
+  //                &model=MODEL_NAME
+  //                &model=TransactionCheckout
+  //                &model=TransactionCheckin
+  //                &model=TransactionRestrict
+  //                &model=TransactionUnrestrict
+  //   method=getAll
+  //                &model=Version[&filter=?]
+  //                &model=Asset[&filter=?][&tree=TF]
+  //                &model=Transaction[&filter=?][&tree=TF]
+  //   method=getForeignKeyReferences&nodeId=ID
+  //
+  // Note: $_REQUEST contains $_POST
+
   try {
     require_once 'includes/auth.php';
-    
+
     //todo: remove this once logging has been enabled on the dev server in php.ini.
     if ( defined( 'SERVER_INSTANCE' ) && SERVER_INSTANCE == 'dev' ) { // dev
       ini_set('display_errors',0);
     }
     header('Content-type: text/javascript');
-    
-    //check header for csrfToken, if not valid don't procede.
+
+    // Check header for csrfToken. If not valid don't procede.
     $reqHeaders = getallheaders();
     if(!isset($reqHeaders['x-csrftoken']) ||
        $reqHeaders['x-csrftoken'] !== $csrfToken) {
       throw new ISLE\Exception('Possible CSRF attack.', ISLE\Exception::CSRF);
     }
-    
+
+ob_start();
+var_dump($_REQUEST);
+error_log(ob_get_contents());
+ob_end_clean();
+
+ob_start();
+var_dump($_POST);
+error_log(ob_get_contents());
+ob_end_clean();
+
+    // Check for logout:
+    //   method=logout
     if($_REQUEST['method'] == 'logout') {
       session_destroy();
       exit(prefixJSON(2,json_encode('success')));
     }
-    
+
+    // Check for feedback from user:
+    //   method=feedback
+    //                  &type=bug&steps=S            # length of S <= 2000
+    //                  &type=feature&description=D[&attachment=?]
+    //                  &type=chore&description=D[&attachment=?]
     if($_REQUEST['method'] == 'feedback') {
-      $formVals = $_POST['args'][0];
-      $fieldNames = $_POST['args'][1];
+      $formVals = $_POST['args'][0];		// Maps HTML form fields to values.
+      $fieldNames = $_POST['args'][1];		// Maps DB fields to HTML form fields.
       $valErrors = array();
-      
+
       //validate fields
       switch($formVals[$fieldNames['type']]) {
         case 'bug':
@@ -74,7 +118,7 @@
             $valErrors['attachment'] = 'Only .jpg, .gif, .png, and .pdf files allowed.';
         }
       }
-      
+
       if(!empty($valErrors)) {
         try {
           throw new ISLE\UIException('One or more errors occurred', $valErrors);
@@ -84,10 +128,10 @@
           exit(prefixJSON(1,json_encode($e->getValErrors())));
         }
       }
-      
+
       $name = '';
       $desc = '';
-      
+
       switch($formVals[$fieldNames['type']]) {
         case 'bug':
           if(strpos($_SERVER['HTTP_REFERER'], $rootdir) !== false) {
@@ -110,11 +154,11 @@
           $desc = $formVals[$fieldNames['description']];
           break;
       }
-      
+
       $page = '';
       $subBy = '';
       $userAgent = '';
-      
+
       if(isset($_SERVER['HTTP_REFERER'])) {
         $page = $_SERVER['HTTP_REFERER'];
       }
@@ -124,7 +168,7 @@
       if(isset($_SERVER['HTTP_USER_AGENT'])) {
         $userAgent = $_SERVER['HTTP_USER_AGENT'];
       }
-      
+
       $desc .= '
 
 *Details*
@@ -132,15 +176,15 @@ _Page:_               '.$page.'
 _Date:_                '.date('d-M-Y H:i:s e', time()).'
 _Submitted by:_ '.$subBy.'
 _User-Agent:_    '.$userAgent;
-      
+
       // config-todo: set to your pivotal tracker token.
       $custom_headers = array('X-TrackerToken' => 'SET_TOKEN_HERE');
 
       $xmldata = '<story><story_type>' . $formVals[$fieldNames['type']] . '</story_type><name>' . date('[n/j/Y g:i:sa]', time()) . ' ' . htmlspecialchars($name) . '</name><description>' . htmlspecialchars($desc) . '</description></story>';
-      
+
       // config-todo: set to your project ID
       $httpResponse = ISLE\Validate::http_request('POST', 'www.pivotaltracker.com', 443, '/services/v3/projects/YOUR_PROJECT_ID/stories', array(), array(), $xmldata, array(), array(), $custom_headers, 1, false, false);
-      
+
       //check the response for a single <story> node. This indicates success.
       $xmlParser = xml_parser_create();
       xml_parse_into_struct($xmlParser, $httpResponse, $xmlResp);
@@ -148,7 +192,7 @@ _User-Agent:_    '.$userAgent;
         if($xmlResp[1]['tag'] != 'ID' || !preg_match('/^[0-9]+$/', $xmlResp[1]['value'])){
           throw new ISLE\Exception('An error occurred while submitting feedback.', ISLE\Exception::AJAX);
         }
-        
+
         // story successfully submitted, now upload the attachment if there is one.
         if(isset($newfilename)) {
           $storyId = $xmlResp[1]['value'];
@@ -192,26 +236,27 @@ _User-Agent:_    '.$userAgent;
 
       throw new ISLE\Exception('An error occurred while submitting feedback.',
                                ISLE\Exception::AJAX);
-    }
+    } // End feedback.
 
-    // whitelist validate GET model.
+    // Whitelist validate GET model.  Model name must not have underscores or numbers.
     if(!preg_match('/^[a-zA-Z]+$/', $_REQUEST['model'])) {
       throw new ISLE\Exception('Invalid Model', ISLE\Exception::AJAX);
     }
 
+    // If model isn't "Version", then it is the name of an MVC model:
     if($_REQUEST['model'] !== 'Version') {
       eval('$class = new ISLE\\Models\\' . $_REQUEST['model'] . '();');
     }
 
     switch($_REQUEST['method']) {
-      
+
       case 'add':
       case 'update':
       case 'delete':
-        
-        $formVals = $_POST['args'][0];
-        $fieldNames = $_POST['args'][1];
-        
+
+        $formVals = $_POST['args'][0];		// Maps HTML form fields to values.
+        $fieldNames = $_POST['args'][1];	// Maps DB fields to HTML form fields.
+
         switch($_REQUEST['model']) {
           case 'User':
             //if we're adding a user.
@@ -240,7 +285,7 @@ _User-Agent:_    '.$userAgent;
               $multiple = true;
             }
         }
-        
+
         if($_REQUEST['model'] == 'TransactionCheckout') {
           $formVals[$fieldNames['type']] = 1;
         }
@@ -269,7 +314,7 @@ _User-Agent:_    '.$userAgent;
                 $class->$prop = null;
               }
             }
-            
+
             try {
               $addedItem = $svc->$_POST['method']($class);
             }
@@ -288,7 +333,7 @@ _User-Agent:_    '.$userAgent;
               $class->$prop = null;
             }
           }
-          
+
           try {
             $addedItem = $svc->$_POST['method']($class);
           }
@@ -296,15 +341,15 @@ _User-Agent:_    '.$userAgent;
             //validation failed. show errors.
             exit(prefixJSON(1,json_encode($e->getValErrors())));
           }
-          
+
         }
-        
+
         if(isset($validEmail)) {
           //send the welcome message to the added user's email.
-          
+
           $to  = $validEmail;
           $subject = 'Welcome to ISLE';
-          
+
           //config-todo: set to your url.
           $message = "
           <html>
@@ -320,7 +365,7 @@ _User-Agent:_    '.$userAgent;
           </body>
           </html>
           ";
-          
+
           $headers  = 'MIME-Version: 1.0' . "\r\n";
           $headers .= 'Content-Type: text/html; charset=iso-8859-1' . "\r\n";
           //config-todo: set your name and email here.
@@ -328,9 +373,9 @@ _User-Agent:_    '.$userAgent;
 
           mail($to, $subject, $message, $headers);
         }
-        
+
         exit(prefixJSON(2, json_encode($addedItem)));
-        
+
         break;
       case 'getAll':
         //if $_REQUEST['model'] = 'Version' than use the local array of Versions.
@@ -380,7 +425,7 @@ _User-Agent:_    '.$userAgent;
           }
         }
         exit(prefixJSON(2, json_encode($ret)));
-        
+
         break;
       case 'getForeignKeyReferences':
         $class->id = $_REQUEST['nodeId'];
@@ -398,11 +443,11 @@ _User-Agent:_    '.$userAgent;
     if(strpos($e->getMessage(), 'SQLSTATE[23000]') !== False) {
       $errorMsg = 'duplicate';
     }
-    
+
     echo prefixJSON(1, json_encode($errorMsg));
     // rethrow the exception with a code that indicates to the global
     // exception handler not to send the oops output.
-    
+
     if(method_exists($e, 'displayOutputOff')) {
       $e->displayOutputOff();
       throw $e;
@@ -411,7 +456,7 @@ _User-Agent:_    '.$userAgent;
       throw new ISLE\Exception($e->getMessage(), $e->getCode(), $e, false);
     }
   }
-  
+
   function prefixJSON($status, $jsonStr) {
     switch($status) {
       case 1:
@@ -424,11 +469,11 @@ _User-Agent:_    '.$userAgent;
         $statusTxt = "'Unknown=" . $status . "'";
         break;
     }
-    
+
     //return 'while(1);{"result":{"status":"' . $statusTxt . '", "value":' . $jsonStr . '}}';
     return '{"result":{"status":"' . $statusTxt . '", "value":' . $jsonStr . '}}';
   }
-  
+
   function getVersions($u, $version = null) {
     $rows = $_SESSION['versions'];
     if(!empty($version)) {
