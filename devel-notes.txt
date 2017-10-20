@@ -98,3 +98,31 @@ array(3) {
     }
 }
 
+------------------------------------------------------------------------------
+
+		Installed on spg-services.xpliant.com:
+
+sudo yum install httpd
+sudo yum install ntp
+sudo yum install MySQL-python
+sudo yum install lsb
+sudo yum repoinfo 'Extra Packages for Enterprise Linux 7 - x86_64'
+sudo yum install yum-utils
+sudo yum install http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+sudo yum-config-manager --enable remi-php56
+
+sudo yum install php
+sudo yum install php-ldap
+sudo yum install php-pear
+sudo yum install php-devel
+pecl channel-update pecl.php.net
+sudo pecl install SPL_Type
+sudo yum install php-pdo.x86_64
+sudo yum install php-ZendFramework-Db-Adapter-Pdo-Mssql.noarch
+sudo yum install php-mysqlnd.x86_64
+sudo yum install php-pear-MDB2-Driver-mysql.noarch php-pecl-mysqlnd-ms.x86_64
+sudo yum update php
+sudo yum update php-curl
+sudo yum update php-ldap
+sudo yum install php-json
+
