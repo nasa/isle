@@ -30,7 +30,7 @@
       // that gets "included" in this file and add that file to .gitignore
       // before using in a production environment.
 
-      $db_str = 'mysql:host:' . Secrets::DB_HOST_NAME . ';port=' .
+      $db_str = 'mysql:host=' . Secrets::DB_HOST_NAME . ';port=' .
                 Secrets::DB_PORT . ';dbname=isle_' . SERVER_INSTANCE .
                 ';charset=utf8';
       $this->ds = new \PDO($db_str, Secrets::DB_USER, Secrets::DB_PASSWORD);

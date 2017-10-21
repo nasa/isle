@@ -26,8 +26,8 @@
 #
 # Limitations:
 #  - Assumes Python 2.7 or possibly lower.
-#  - Assumes Posix-compatible shell that supports the "sort" and "uniq"
-#    commands.
+#  - Assumes Posix-compatible shell.
+#  - Assumes PHP can be run from the shell to access the Secrets.php file.
 #  - Must be run by user root.
 
 import os
@@ -37,8 +37,7 @@ import subprocess
 import MySQLdb
 import getpass
 import argparse
-
-EPILOG = ""
+import sqlparse
 
 BASE_DIR		= '/var/www/'
 SECRETS_FILE		= BASE_DIR + 'webroot/isle/includes/classes/Secrets.php'
@@ -46,7 +45,10 @@ PHP_BASE_CMD		= 'php -r "@include \'' + SECRETS_FILE + "';"
 LOGROTATE_FILE_PATTERN	= "/etc/logrotate.d/isle-%s"
 INSTANCE_DIR_PATTERN	= BASE_DIR + "instances/%s/"
 INSTANCE_NAMES		= [ 'myinstance', 'myinstance2' ]
+SQL_FILES		= [ 'init.sql', 'data.sql' ]
 
+EPILOG = ""
+DEBUG  = False
 
 # \fn run_cmd
 # \public
@@ -98,7 +100,7 @@ def read_file(file_name):
     else:
         print("ERROR: %s does not exist." % file_name)
         exit(0)
-    return result
+    return result.decode("utf-8-sig").encode("utf-8")		# Handle BOM.
 
 
 # \fn ask
@@ -119,6 +121,30 @@ def ask(question):
             print('Just pressing <Enter> is assumed to mean "yes".')
 
 
+# \fn send_cmd
+# \public
+# \brief Sends a command to a MySQL server.
+# \param [in] cursor	cursor object
+# \param [in] cmd	string
+# \return None
+
+def send_cmd(cursor, cmd):
+    if not cmd:
+        print("Skipping empty %s" % type(cmd))
+        return
+
+    try:
+        cursor.execute(cmd)
+        retval = cursor.fetchall()
+        if DEBUG:
+            print("%s returned: %s" % (cmd, retval if retval else 'N/A'))
+    except Exception as e:
+        print("\tThis command:")
+        print(cmd)
+        print("\tGenerated this exception:")
+        print(e, str(e))
+
+
 if __name__ == "__main__":
     # Parse command line arguments:
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -130,9 +156,12 @@ if __name__ == "__main__":
                         help='Use "systemctl restart" to restart server.')
     parser.add_argument('-d', '--service', action='store_true', default=False,
                         help='Use "service reload" to restart server.')
+    parser.add_argument('-c', '--clean', action='store_true', default=False,
+                        help='Drop the existing database and start clean.')
     parser.add_argument('-D', '--DEBUG', action='store_true', default=False,
                         help='Enable debugging mode.')
     args = parser.parse_args()
+    DEBUG = args.DEBUG
 
     # Check the effective user name:
     if getpass.getuser() != "root":
@@ -149,30 +178,38 @@ if __name__ == "__main__":
     mysql_port    = run_cmd(PHP_BASE_CMD + 'echo ISLE\Secrets::DB_PORT;"').strip()
     mysql_db_name = run_cmd(PHP_BASE_CMD + 'echo ISLE\Secrets::DB_NAME;"').strip()
 
+    # Connecting to MySQL's management DB in order to create the ISLE DB:
+    db = MySQLdb.connect(host = mysql_host, user = mysql_user,
+                         use_unicode = True, charset = "utf8",
+                         passwd = mysql_pwd, db = "mysql" )
+    cur = db.cursor()
+    send_cmd(cur, "SET NAMES 'utf8';")		# Turn on Unicode UTF8.
+
+    if args.clean and ask("Are you sure you want to drop the existing ISLE database?"):
+        print("Dropping existing database '%s'." % mysql_db_name)
+        send_cmd(cur, "DROP DATABASE %s;" % mysql_db_name)
+
     if not args.interactive or ask("Create ISLE's database?"):
-        # Connecting to MySQL's management DB in order to create the ISLE DB:
-        db = MySQLdb.connect(host = mysql_host, user = mysql_user,
-                             passwd = mysql_pwd, db = "mysql" )
-        cur = db.cursor()
-        cur.execute("CREATE DATABASE %s;" % mysql_db_name)
-        retval = cur.fetchall()
-        print("CREATE DATABASE returned: %s" % retval)
-        db.close()
+        send_cmd(cur, "CREATE DATABASE %s;" % mysql_db_name)
+
+    db.close()		# Done with MySQL's management DB.
 
     if not args.interactive or ask("Populate all database instances?"):
         # Connecting to the new ISLE DB:
         isle_db = MySQLdb.connect(host = mysql_host, user = mysql_user,
+                                  use_unicode = True, charset = "utf8",
                                   passwd = mysql_pwd, db = mysql_db_name)
         isle_cur = isle_db.cursor()
+        send_cmd(isle_cur, "SET NAMES 'utf8';")	# Turn on Unicode UTF8.
+
         # Initialize DB tables and data for each instance:
         for inst in INSTANCE_NAMES:
             inst_dir = INSTANCE_DIR_PATTERN % inst
-            isle_cur.execute(read_file(inst_dir + "init.sql"))
-            retval = cur.fetchall()
-            print("%s returned: %s" % (inst_dir + "init.sql", retval)
-            isle_cur.execute(read_file(inst_dir + "data.sql"))
-            retval = cur.fetchall()
-            print("%s returned: %s" % (inst_dir + "data.sql", retval)
+            # For each type of SQL file:
+            for f in SQL_FILES:
+                cmds = sqlparse.split(read_file(inst_dir + f))
+                for cmd in cmds:
+                    send_cmd(isle_cur, cmd)
 
         isle_db.close()
 
@@ -196,6 +233,6 @@ if __name__ == "__main__":
             run_cmd("service apache2 reload")		# Debian Linux.
         elif args.systemctl:
             run_cmd("systemctl restart httpd.service")	# Red Hat linux.
-        else:
+        elif DEBUG:
             print("Did not restart webserver.")
 

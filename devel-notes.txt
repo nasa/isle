@@ -110,6 +110,7 @@ sudo yum repoinfo 'Extra Packages for Enterprise Linux 7 - x86_64'
 sudo yum install yum-utils
 sudo yum install http://rpms.remirepo.net/enterprise/remi-release-7.rpm
 sudo yum-config-manager --enable remi-php56
+sudo yum install python-sqlparse
 
 sudo yum install php
 sudo yum install php-ldap
