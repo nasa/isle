@@ -44,6 +44,7 @@
       throw new ISLE\Exception('Possible CSRF attack.', ISLE\Exception::CSRF);
     }
 
+/*
 ob_start();
 var_dump($_REQUEST);
 error_log(ob_get_contents());
@@ -53,6 +54,7 @@ ob_start();
 var_dump($_POST);
 error_log(ob_get_contents());
 ob_end_clean();
+*/
 
     // Check for logout:
     //   method=logout

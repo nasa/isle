@@ -123,7 +123,7 @@
         }
         $this->username = $username;
         $this->password = $password;
-        echo "username = " . $username . ", password = " . $password . "<br>";
+        //echo "username = " . $username . ", password = " . $password . "<br>";
         // Establish connection to server:
         if (!$this->connection = ldap_connect(Secrets::LDAP_HOST, Secrets::LDAP_PORT)) {
           throw new \UnexpectedValueException('ldap_connect(' . Secrets::LDAP_HOST .
@@ -173,9 +173,9 @@
               $query = ActiveDirectory::user_query_string($user);
               $auth_user = $ad->search($query, array("distinguishedname"))[0]["distinguishedname"];
             } catch (Exception $e) {
-              // *** ERROR ***
-              die("authenticate_user failed: " . ldap_error($ad) . ", " .
-                  $e->getMessage());
+              echo("authenticate_user failed: " . ldap_error($ad) . ", " .
+                   $e->getMessage());
+              throw $e;
             }
             break;
 
@@ -186,24 +186,25 @@
 
           case AuthMode::USE_NAME_AT_DOMAIN:	// Windows user@domain.
             if (Secrets::WIN_DOMAIN == null or Secrets::WIN_DOMAIN == "") {
-              // *** ERROR ***
-              die("authenticate_user failed: Secrets::WIN_DOMAIN is blank.");
+              echo("authenticate_user failed: Secrets::WIN_DOMAIN is blank.");
+              throw new \UnexpectedValueException('Secrets::WIN_DOMAIN is blank.');
             }
             $auth_user = sprintf("%s@%s", $user, Secrets::WIN_DOMAIN);
             break;
 
           case AuthMode::USE_DOMAIN_SLASH_NAME:	// Windows domain\user.
             if (Secrets::WIN_DOMAIN == null or Secrets::WIN_DOMAIN == "") {
-              // *** ERROR ***
-              die("authenticate_user failed: Secrets::WIN_DOMAIN is blank.");
+              echo("authenticate_user failed: Secrets::WIN_DOMAIN is blank.");
+              throw new \UnexpectedValueException('Secrets::WIN_DOMAIN is blank.');
             }
             $auth_user = sprintf("%s\\%s", Secrets::WIN_DOMAIN, $user);
             break;
 
           default:
-            // *** ERROR ***
-            die("authenticate_user failed: Secrets::AUTH_MODE = " .
-                Secrets::AUTH_MODE);
+            echo("authenticate_user failed: Secrets::AUTH_MODE = " .
+                 Secrets::AUTH_MODE);
+            throw new \UnexpectedValueException('Secrets::AUTH_MODE is illegal value (' .
+                                                Secrets::AUTH_MODE . ')');
             break;
         }
 
@@ -212,8 +213,8 @@
           return $ad->get_userid($user);
 
         } catch (Exception $e) {
-          // *** ERROR ***
-          die("authenticate_user failed: couldn't get userid, " . $e->getMessage());
+          echo("authenticate_user failed: couldn't get userid, " . $e->getMessage());
+          throw $e;
         }
       }
 
@@ -270,30 +271,40 @@ echo("<br/>get_userid() search result = ");
         $cookie = '';
         do {
           if (!ldap_control_paged_result($this->connection, 1000, false, $cookie)) {
-            die("ldap_control_paged_result failed: " . ldap_error($this->connection));
+            $msg = "ActiveDirectory#search ldap_control_paged_result failed: " .
+                   ldap_error($this->connection);
+            echo($msg);
+            throw new \UnexpectedValueException($msg);
           }
 
           $result = ldap_search($this->connection, Secrets::LDAP_DN, $query, $attrs);
           if ($result !== false) {			// 0 == false, but 0 !== false.
             $sub_result = ldap_get_entries($this->connection, $result);
             if ($sub_result === false) {		// PHP sucks.
-                die("ActiveDirectory#search ldap_get_entries failed: " .
-                    ldap_error($this->connection));
+                $msg = "ActiveDirectory#search ldap_get_entries failed: " .
+                       ldap_error($this->connection);
+                echo($msg);
+                throw new \UnexpectedValueException($msg);
             }
             $total_result = array_merge($total_result, $sub_result);
             $total_count += $total_result['count'];	// 'count' gets overwritten.
           } else {
             echo('<br/>$query = ' . $query . '<br/>');
             var_dump($attrs);
-            die("ActiveDirectory#search ldap_search failed: " .
-                ldap_error($this->connection));
+            $msg = "ActiveDirectory#search ldap_search failed: " .
+                   ldap_error($this->connection);
+            echo($msg);
+            throw new \UnexpectedValueException($msg);
           }
 
           // *** GETTING FALSE EVEN THOUGH THERE IS NO ERROR ***
           ldap_control_paged_result_response($this->connection, $result, $cookie);
-/*          if (!ldap_control_paged_result_response($this->connection, $result, $cookie)) {
-            die("ldap_control_paged_result_response failed: " .
-                ldap_error($this->connection));
+/*        *** OLD CODE: ***
+          if (!ldap_control_paged_result_response($this->connection, $result, $cookie)) {
+            $msg = "ldap_control_paged_result_response failed: " .
+                   ldap_error($this->connection);
+            echo($msg);
+            throw new \UnexpectedValueException($msg);
           }
 */
         } while ($cookie !== null && $cookie != '');
@@ -343,8 +354,9 @@ echo("<br/>get_userid() search result = ");
         if (is_string($mask)) {
           $mask = intval($mask);
         } else if (!is_int($mask)) {    // Else $mask is something weird:
-          die('ERROR: ActiveDirectory::print_UAC_flags: $mask is type '
-              . gettype($mask));
+          $msg = 'ActiveDirectory::print_UAC_flags: $mask is type ' . gettype($mask);
+          echo($msg);
+          throw new \UnexpectedValueException($msg);
         }
 
         $result = "";
@@ -370,7 +382,6 @@ echo("<br/>get_userid() search result = ");
     
         if (!isset($sid['id']) or !isset($sid['rev'])) {
           var_dump($sid);
-          die("-------------------------------");
           throw new \UnexpectedValueException(
                       'The revision level or identifier authority was not ' .
                       'found when decoding the SID.'
@@ -403,7 +414,7 @@ echo("<br/>get_userid() search result = ");
       {
         $len = count($comp_array);
         if (count($sid_array) < $len + 3) {
-          die("SID array is too small!");
+          throw new \OutOfBoundsException("SID array is too small.");
         }
 
         for ($i = 0; $i < count($comp_array); $i++) {
