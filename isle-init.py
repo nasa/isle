@@ -27,6 +27,7 @@
 # Limitations:
 #  - Assumes Python 2.7 or possibly lower.
 #  - Assumes Posix-compatible shell.
+#  - Requires Linux-like OS.
 #  - Assumes PHP can be run from the shell to access the Secrets.php file.
 #  - Must be run by user root.
 
@@ -38,47 +39,143 @@ import MySQLdb
 import getpass
 import argparse
 import sqlparse
+import platform
+import enum
+import shutil
+
 
 BASE_DIR		= '/var/www/'
 SECRETS_FILE		= BASE_DIR + 'webroot/isle/includes/classes/Secrets.php'
 PHP_BASE_CMD		= 'php -r "@include \'' + SECRETS_FILE + "';"
-LOGROTATE_FILE_PATTERN	= "/etc/logrotate.d/isle-%s"
-INSTANCE_DIR_PATTERN	= BASE_DIR + "instances/%s/"
+LOGROTATE_FILE_PAT	= "/etc/logrotate.d/isle-%s"
+INSTANCE_DIR_PAT	= BASE_DIR + "instances/%s/"
 INSTANCE_NAMES		= [ 'myinstance', 'myinstance2' ]
 SQL_FILES		= [ 'init.sql', 'data.sql' ]
+APACHE_CONF_FILE	= 'isle.local.conf'
+APACHE_INST_CONF_PAT	= 'isle.local.%s.conf'
 
 EPILOG = ""
 DEBUG  = False
 
-# \fn run_cmd
-# \public
-# \brief Runs the command in a shell. Returns an empty string if an exception
-#        is raised.
-# \param [in] cmd_str          string
-# \param [in] ignore_exit_1    boolean
-# \return string
 
-def run_cmd(cmd_str, ignore_exit_1 = False):
-    result = ""
-    try:
-        # If we have a reasonable version of Python:
-        if sys.version_info >= (2,7):
-            result = subprocess.check_output(cmd_str, shell=True)
-        else:	# Else this machine needs an upgrade:
-            fp = os.popen(cmd_str, "r")
-            result = fp.read()
-            fp.close()
-    except Exception as e:
-        # grep will return errno == 1 if it doesn't match any lines
-        # in its input stream.  We want to ignore this case since it's
-        # not really an error.
-        if (type(e) != subprocess.CalledProcessError or e.returncode != 1 or
-            not ignore_exit_1):
-            print("\tThis command:")
-            print(cmd_str)
-            print("\tGenerated this exception:")
-            print(e, str(e))
-    return result
+# \class OSType
+# \public
+# \brief Figures out what type of Linux we're running on.
+class OSType():
+    REDHAT = 0
+    DEBIAN = 1
+    REDHAT_LIKE = ["redhat", "suse", "scientific linux", "centos", "fedora"]
+    DEBIAN_LIKE = ["debian", "ubuntu", "kubuntu", "mint"]
+    REDHAT_RESTART	= "service apache2 reload"
+    DEBIAN_RESTART	= "systemctl restart httpd.service"
+    REDHAT_APACHE_DIR	= '/etc/httpd/'
+    DEBIAN_APACHE_DIR	= '/etc/apache2/sites-available/'
+    DEBIAN_SITE_INST_PAT= 'isle.local.%s'
+
+    # \fn __init__
+    # \public
+    # \brief Constructor: Classifies OS as DEBIAN or REDHAT.
+    # \return
+    def __init__(self, redhat = False, debian = False):
+        if redhat and debian:
+            print('ERROR: RedHat and Debian are mutually exclusive.')
+            exit()
+        elif redhat:			# Forcing RedHat.
+            self.os_type = OSType.REDHAT
+            return
+        elif debian:			# Forcing Debian.
+            self.os_type = OSType.DEBIAN
+            return
+
+        if os.name == "nt" or platform.system() == "Windows":
+            print("This program is intended for use on Linux or similar Posix OSes.")
+        elif platform.system() == "Linux":
+            distro = platform.linux_distribution()[0].lower()	# Get the distro name.
+            if distro in OSType.REDHAT_LIKE:
+                self.os_type = OSType.REDHAT
+                return
+            elif distro in OSType.DEBIAN_LIKE:
+                self.os_type = OSType.DEBIAN
+                return
+            else:
+                print("Unrecognized Linux distribution (%s)" % distro)
+        else:
+            print("Unrecognized OS (%s)" % platform.system())
+
+        print("To force the use of Debian or RedHat features, use --debian or --redhat.")
+        exit()
+
+    # \fn restart_server
+    # \public
+    # \brief Restarts the web server.
+    # \return
+    def restart_server(self):
+        if self.os_type == OSType.REDHAT:
+            OSType.run_cmd(OSType.REDHAT_RESTART)
+        elif self.os_type == OSType.DEBIAN:
+            OSType.run_cmd(OSType.DEBIAN_RESTART)
+
+    # \fn install_conf
+    # \public
+    # \brief Installs the Apache configuration files on the server.
+    # \return
+    def install_conf(self):
+        if self.os_type == REDHAT:
+            print('NOTE: You must manually edit %sconf/httpd.conf' %
+                  OSType.REDHAT_APACHE_DIR)
+            shutil.copy(BASE_DIR + APACHE_CONF_FILE,
+                        OSType.REDHAT_APACHE_DIR + 'conf.d/' + APACHE_CONF_FILE)
+            # Copy Apache config for each instance:
+            for inst in INSTANCE_NAMES:
+                inst_dir = INSTANCE_DIR_PAT % inst
+                inst_conf_file = APACHE_INST_CONF_PAT % inst
+                shutil.copy(inst_dir + inst_conf_file,
+                            OSType.REDHAT_APACHE_DIR + 'conf.d/' + inst_conf_file)
+                if DEBUG:
+                    print('Copied ' + inst_dir + inst_conf_file)
+
+        elif self.os_type == DEBIAN:
+            shutil.copy(BASE_DIR + APACHE_CONF_FILE,
+                        OSType.DEBIAN_APACHE_DIR + APACHE_CONF_FILE)
+            # Copy Apache config for each instance:
+            for inst in INSTANCE_NAMES:
+                inst_dir = INSTANCE_DIR_PAT % inst
+                inst_conf_file = APACHE_INST_CONF_PAT % inst
+                shutil.copy(inst_dir + inst_conf_file,
+                            OSType.DEBIAN_APACHE_DIR + APACHE_CONF_FILE)
+                OSType.run_cmd('a2ensite ' + (OSType.DEBIAN_SITE_INST_PAT % inst))
+                if DEBUG:
+                    print('Copied ' + inst_dir + inst_conf_file)
+
+    # \fn run_cmd
+    # \public
+    # \brief Runs the command in a shell. Returns an empty string if
+    #        an exception is raised.
+    # \param [in] cmd_str          string
+    # \param [in] ignore_exit_1    boolean
+    # \return string
+    @staticmethod
+    def run_cmd(cmd_str, ignore_exit_1 = False):
+        result = ""
+        try:
+            # If we have a reasonable version of Python:
+            if sys.version_info >= (2,7):
+                result = subprocess.check_output(cmd_str, shell=True)
+            else:	# Else this machine needs an upgrade:
+                fp = os.popen(cmd_str, "r")
+                result = fp.read()
+                fp.close()
+        except Exception as e:
+            # grep will return errno == 1 if it doesn't match any lines
+            # in its input stream.  We want to ignore this case since it's
+            # not really an error.
+            if (type(e) != subprocess.CalledProcessError or e.returncode != 1 or
+                not ignore_exit_1):
+                print("\tThis command:")
+                print(cmd_str)
+                print("\tGenerated this exception:")
+                print(e, str(e))
+        return result
 
 
 # \fn read_file
@@ -86,7 +183,6 @@ def run_cmd(cmd_str, ignore_exit_1 = False):
 # \brief Reads the contents of a file into 1 large string.
 # \param [in] file_name          string
 # \return string
-
 def read_file(file_name):
     result = ""
     if os.path.exists(file_name) and os.path.isfile(file_name):
@@ -108,7 +204,6 @@ def read_file(file_name):
 # \brief Prompts the user for a yes or no answer.
 # \param [in] question          string
 # \return boolean
-
 def ask(question):
     while True:
         answer = raw_input(question + " ").lower()
@@ -127,7 +222,6 @@ def ask(question):
 # \param [in] cursor	cursor object
 # \param [in] cmd	string
 # \return None
-
 def send_cmd(cursor, cmd):
     if not cmd:
         print("Skipping empty %s" % type(cmd))
@@ -152,10 +246,10 @@ if __name__ == "__main__":
                                      epilog=EPILOG)
     parser.add_argument('-i', '--interactive', action='store_true', default=False,
                         help='Interactive mode.')
-    parser.add_argument('-r', '--systemctl', action='store_true', default=False,
-                        help='Use "systemctl restart" to restart server.')
-    parser.add_argument('-d', '--service', action='store_true', default=False,
-                        help='Use "service reload" to restart server.')
+    parser.add_argument('-r', '--redhat', action='store_true', default=False,
+                        help='Use RedHat-style "systemctl restart" to restart server.')
+    parser.add_argument('-d', '--debian', action='store_true', default=False,
+                        help='Use Debian-style "service reload" to restart server.')
     parser.add_argument('-c', '--clean', action='store_true', default=False,
                         help='Drop the existing database and start clean.')
     parser.add_argument('-D', '--DEBUG', action='store_true', default=False,
@@ -168,15 +262,18 @@ if __name__ == "__main__":
         print("Please run this script as root.")
         exit()
 
-    if args.service and args.systemctl:
-        print('ERROR: the "systemctl" and "service" commands are mutually exclusive.')
-        exit()
+    my_os = OSType(debian = args.debian, redhat = args.redhat)
 
-    mysql_user    = run_cmd(PHP_BASE_CMD + 'echo ISLE\Secrets::DB_USER;"').strip()
-    mysql_pwd     = run_cmd(PHP_BASE_CMD + 'echo ISLE\Secrets::DB_PASSWORD;"').strip()
-    mysql_host    = run_cmd(PHP_BASE_CMD + 'echo ISLE\Secrets::DB_HOST_NAME;"').strip()
-    mysql_port    = run_cmd(PHP_BASE_CMD + 'echo ISLE\Secrets::DB_PORT;"').strip()
-    mysql_db_name = run_cmd(PHP_BASE_CMD + 'echo ISLE\Secrets::DB_NAME;"').strip()
+    mysql_user    = OSType.run_cmd(PHP_BASE_CMD +
+                                   'echo ISLE\Secrets::DB_USER;"').strip()
+    mysql_pwd     = OSType.run_cmd(PHP_BASE_CMD +
+                                   'echo ISLE\Secrets::DB_PASSWORD;"').strip()
+    mysql_host    = OSType.run_cmd(PHP_BASE_CMD +
+                                   'echo ISLE\Secrets::DB_HOST_NAME;"').strip()
+    mysql_port    = OSType.run_cmd(PHP_BASE_CMD +
+                                   'echo ISLE\Secrets::DB_PORT;"').strip()
+    mysql_db_name = OSType.run_cmd(PHP_BASE_CMD +
+                                   'echo ISLE\Secrets::DB_NAME;"').strip()
 
     # Connecting to MySQL's management DB in order to create the ISLE DB:
     db = MySQLdb.connect(host = mysql_host, user = mysql_user,
@@ -204,7 +301,7 @@ if __name__ == "__main__":
 
         # Initialize DB tables and data for each instance:
         for inst in INSTANCE_NAMES:
-            inst_dir = INSTANCE_DIR_PATTERN % inst
+            inst_dir = INSTANCE_DIR_PAT % inst
             # For each type of SQL file:
             for f in SQL_FILES:
                 cmds = sqlparse.split(read_file(inst_dir + f))
@@ -213,10 +310,13 @@ if __name__ == "__main__":
 
         isle_db.close()
 
+    if not args.interactive or ask("Install Apache configuration files?"):
+        my_os.install_conf()
+
     if not args.interactive or ask("Modify logrotate files?"):
         # Create logrotate configuration for each instance:
         for inst in INSTANCE_NAMES:
-            with open(LOGROTATE_FILE_PATTERN % inst, "a") as f:
+            with open(LOGROTATE_FILE_PAT % inst, "a") as f:
                 f.write("""
 /var/www/instances/%s/logs/*.log {
         yearly
@@ -229,10 +329,7 @@ if __name__ == "__main__":
 
     # Restart Apache for configuration changes to take effect:
     if not args.interactive or ask("Restart the webserver?"):
-        if args.service:
-            run_cmd("service apache2 reload")		# Debian Linux.
-        elif args.systemctl:
-            run_cmd("systemctl restart httpd.service")	# Red Hat linux.
-        elif DEBUG:
-            print("Did not restart webserver.")
+        my_os.restart_server()
+    elif DEBUG:
+        print("Did not restart webserver.")
 
