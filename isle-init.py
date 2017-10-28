@@ -252,6 +252,8 @@ if __name__ == "__main__":
                         help='Use Debian-style "service reload" to restart server.')
     parser.add_argument('-c', '--clean', action='store_true', default=False,
                         help='Drop the existing database and start clean.')
+    parser.add_argument('--copy', action='store_true', default=False,
+                        help='Copy ISLE files from %s to %s.' % (os.getcwd(), BASE_DIR))
     parser.add_argument('-D', '--DEBUG', action='store_true', default=False,
                         help='Enable debugging mode.')
     args = parser.parse_args()
@@ -261,6 +263,9 @@ if __name__ == "__main__":
     if getpass.getuser() != "root":
         print("Please run this script as root.")
         exit()
+
+    if args.copy:
+        print("WARNING: --copy option not implemented yet.")
 
     my_os = OSType(debian = args.debian, redhat = args.redhat)
 
