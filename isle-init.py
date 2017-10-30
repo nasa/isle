@@ -53,7 +53,7 @@ INSTANCE_NAMES		= [ 'myinstance', 'myinstance2' ]
 SQL_FILES		= [ 'init.sql', 'data.sql' ]
 APACHE_CONF_FILE	= 'isle.local.conf'
 APACHE_INST_CONF_PAT	= 'isle.local.%s.conf'
-TOP_DIR_FILES		= set( 'webroot', 'instances' )
+TOP_DIR_FILES		= { 'webroot', 'instances' }	# Set.
 
 EPILOG = ""
 DEBUG  = False
@@ -67,8 +67,8 @@ class OSType():
     DEBIAN = 1
     REDHAT_LIKE = ["redhat", "suse", "scientific linux", "centos", "fedora"]
     DEBIAN_LIKE = ["debian", "ubuntu", "kubuntu", "mint"]
-    REDHAT_RESTART	= "service apache2 reload"
-    DEBIAN_RESTART	= "systemctl restart httpd.service"
+    REDHAT_RESTART	= "systemctl restart httpd.service"
+    DEBIAN_RESTART	= "service apache2 reload"
     REDHAT_APACHE_DIR	= '/etc/httpd/'
     DEBIAN_APACHE_DIR	= '/etc/apache2/sites-available/'
     DEBIAN_SITE_INST_PAT= 'isle.local.%s'
@@ -78,6 +78,7 @@ class OSType():
     # \brief Constructor: Classifies OS as DEBIAN or REDHAT.
     # \return
     def __init__(self, redhat = False, debian = False):
+        global DEBUG
         if redhat and debian:
             print('ERROR: RedHat and Debian are mutually exclusive.')
             exit()
@@ -92,6 +93,8 @@ class OSType():
             print("This program is intended for use on Linux or similar Posix OSes.")
         elif platform.system() == "Linux":
             distro = platform.linux_distribution()[0].lower()	# Get the distro name.
+            if DEBUG:
+                print("Linux distro = %s." % distro)
             if distro in OSType.REDHAT_LIKE:
                 self.os_type = OSType.REDHAT
                 return
@@ -111,6 +114,7 @@ class OSType():
     # \brief Restarts the web server.
     # \return
     def restart_server(self):
+        global DEBUG
         if self.os_type == OSType.REDHAT:
             OSType.run_cmd(OSType.REDHAT_RESTART)
         elif self.os_type == OSType.DEBIAN:
@@ -121,6 +125,7 @@ class OSType():
     # \brief Installs the Apache configuration files on the server.
     # \return
     def install_conf(self):
+        global DEBUG
         if self.os_type == REDHAT:
             print('NOTE: You must manually edit %sconf/httpd.conf' %
                   OSType.REDHAT_APACHE_DIR)
@@ -157,6 +162,7 @@ class OSType():
     # \return string
     @staticmethod
     def run_cmd(cmd_str, ignore_exit_1 = False):
+        global DEBUG
         result = ""
         try:
             # If we have a reasonable version of Python:
