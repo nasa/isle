@@ -53,6 +53,7 @@ INSTANCE_NAMES		= [ 'myinstance', 'myinstance2' ]
 SQL_FILES		= [ 'init.sql', 'data.sql' ]
 APACHE_CONF_FILE	= 'isle.local.conf'
 APACHE_INST_CONF_PAT	= 'isle.local.%s.conf'
+TOP_DIR_FILES		= set( 'webroot', 'instances' )
 
 EPILOG = ""
 DEBUG  = False
@@ -240,6 +241,7 @@ def send_cmd(cursor, cmd):
 
 
 if __name__ == "__main__":
+    cwd = os.getcwd()
     # Parse command line arguments:
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description="ISLE installation script.",
@@ -247,13 +249,13 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--interactive', action='store_true', default=False,
                         help='Interactive mode.')
     parser.add_argument('-r', '--redhat', action='store_true', default=False,
-                        help='Use RedHat-style "systemctl restart" to restart server.')
+                        help='Use RedHat-style "systemctl" commands.')
     parser.add_argument('-d', '--debian', action='store_true', default=False,
-                        help='Use Debian-style "service reload" to restart server.')
+                        help='Use Debian-style "service" commands.')
     parser.add_argument('-c', '--clean', action='store_true', default=False,
                         help='Drop the existing database and start clean.')
     parser.add_argument('--copy', action='store_true', default=False,
-                        help='Copy ISLE files from %s to %s.' % (os.getcwd(), BASE_DIR))
+                        help='Copy ISLE files from %s to %s.' % (cwd, BASE_DIR))
     parser.add_argument('-D', '--DEBUG', action='store_true', default=False,
                         help='Enable debugging mode.')
     args = parser.parse_args()
@@ -264,10 +266,26 @@ if __name__ == "__main__":
         print("Please run this script as root.")
         exit()
 
-    if args.copy:
-        print("WARNING: --copy option not implemented yet.")
-
     my_os = OSType(debian = args.debian, redhat = args.redhat)
+
+    if args.copy:
+        if not args.interactive or ask("Copy ISLE's files from %s to %s?" %
+                                       (cwd, BASE_DIR)):
+            # Create a set of all files & dirs in current directory:
+            files = set(os.listdir(cwd))
+            # What files & dirs are in both sets?
+            intersect = TOP_DIR_FILES & files
+            # If intersect doesn't contain all the members of TOP_DIR_FILES:
+            if len(intersect) < len(TOP_DIR_FILES):
+                print('ERROR: Cannot find expected files and/or directories in %s' %
+                      cwd)
+                print('       Missing: %s' % string.join(list(TOP_DIR_FILES -
+                                                              intersect), ', '))
+                exit()
+            shutil.copytree(cwd, BASE_DIR,
+                            ignore=ignore_patterns('.git*', '.vagrant', 'Vagrantfile'))
+            if DEBUG:
+                print("Copied files and directories from %s to %s" % (cwd, BASE_DIR))
 
     mysql_user    = OSType.run_cmd(PHP_BASE_CMD +
                                    'echo ISLE\Secrets::DB_USER;"').strip()
@@ -285,6 +303,9 @@ if __name__ == "__main__":
                          use_unicode = True, charset = "utf8",
                          passwd = mysql_pwd, db = "mysql" )
     cur = db.cursor()
+    if DEBUG:
+        print("Connected to MySQL.")
+
     send_cmd(cur, "SET NAMES 'utf8';")		# Turn on Unicode UTF8.
 
     if args.clean and ask("Are you sure you want to drop the existing ISLE database?"):
