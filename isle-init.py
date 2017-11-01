@@ -53,7 +53,6 @@ INSTANCE_NAMES		= [ 'myinstance', 'myinstance2' ]
 SQL_FILES		= [ 'init.sql', 'data.sql' ]
 APACHE_CONF_FILE	= 'isle.local.conf'
 APACHE_INST_CONF_PAT	= 'isle.local.%s.conf'
-TOP_DIR_FILES		= { 'webroot', 'instances' }	# Set.
 
 EPILOG = ""
 DEBUG  = False
@@ -81,7 +80,7 @@ class OSType():
         global DEBUG
         if redhat and debian:
             print('ERROR: RedHat and Debian are mutually exclusive.')
-            exit()
+            exit(0)
         elif redhat:			# Forcing RedHat.
             self.os_type = OSType.REDHAT
             return
@@ -107,7 +106,7 @@ class OSType():
             print("Unrecognized OS (%s)" % platform.system())
 
         print("To force the use of Debian or RedHat features, use --debian or --redhat.")
-        exit()
+        exit(0)
 
     # \fn restart_server
     # \public
@@ -182,6 +181,7 @@ class OSType():
                 print(cmd_str)
                 print("\tGenerated this exception:")
                 print(e, str(e))
+            exit(0)
         return result
 
 
@@ -230,20 +230,65 @@ def ask(question):
 # \param [in] cmd	string
 # \return None
 def send_cmd(cursor, cmd):
+    global DEBUG
     if not cmd:
         print("Skipping empty %s" % type(cmd))
         return
 
+#    try:
+    cursor.execute(cmd)
+    retval = cursor.fetchall()
+    if DEBUG:
+        print("%s returned: %s" % (cmd, retval if retval else 'N/A'))
+#    except Exception as e:
+#        print("\tThis command:")
+#        print(cmd)
+#        print("\tGenerated this exception:")
+#        print(e, str(e))
+
+
+# \fn copy_dir
+# \public
+# \brief Copies a directory because shutil.copytree() is broken.
+# \param [in] src		string
+# \param [in] dest		string
+# \param [in] ignore		set?
+# \param [in] interactive	bool
+# \return None
+def copy_dir(src, dest, ignore, interactive):
+    global DEBUG
     try:
-        cursor.execute(cmd)
-        retval = cursor.fetchall()
-        if DEBUG:
-            print("%s returned: %s" % (cmd, retval if retval else 'N/A'))
+        if os.path.exists(dest):		# If dest already exists:
+            if os.path.isfile(dest):		# And dest is a file:
+                if ask("Delete the file %s first?" % dest):
+                    os.remove(dest)		# Remove the file.
+                else:
+                    print("ERROR: The file %s is in the way. Please move it first." %
+                          dest)
+                    exit(0)
+            elif os.path.isdir(dest):		# Else dest is a directory:
+                if os.listdir(dest):		# Check if dest is empty.
+                    print("WARNING: %s exists and is not empty." % dest)
+                if ask("Delete the existing directory %s first?" % dest):
+                    shutil.rmtree(dest)		# Delete the directory.
+                else:
+                    print("ERROR: The directory %s is in the way. Please move it first." %
+                          dest)
+                    exit(0)
+            else:				# Else dest is unknow FS object:
+                print("ERROR: %s exists but is of unknown type.")
+                exit(0)
+
+        # Now dest does not exist:
+        if not interactive or ask("Copy ISLE's files from %s to %s?" %
+                                  (src, dest)):
+            # copytree() won't copy to a directory that already exists.
+            shutil.copytree(src, dest, ignore = ignore)
+
     except Exception as e:
-        print("\tThis command:")
-        print(cmd)
-        print("\tGenerated this exception:")
         print(e, str(e))
+        exit(0)
+
 
 
 if __name__ == "__main__":
@@ -270,28 +315,16 @@ if __name__ == "__main__":
     # Check the effective user name:
     if getpass.getuser() != "root":
         print("Please run this script as root.")
-        exit()
+        exit(0)
 
     my_os = OSType(debian = args.debian, redhat = args.redhat)
 
     if args.copy:
-        if not args.interactive or ask("Copy ISLE's files from %s to %s?" %
-                                       (cwd, BASE_DIR)):
-            # Create a set of all files & dirs in current directory:
-            files = set(os.listdir(cwd))
-            # What files & dirs are in both sets?
-            intersect = TOP_DIR_FILES & files
-            # If intersect doesn't contain all the members of TOP_DIR_FILES:
-            if len(intersect) < len(TOP_DIR_FILES):
-                print('ERROR: Cannot find expected files and/or directories in %s' %
-                      cwd)
-                print('       Missing: %s' % string.join(list(TOP_DIR_FILES -
-                                                              intersect), ', '))
-                exit()
-            shutil.copytree(cwd, BASE_DIR,
-                            ignore=ignore_patterns('.git*', '.vagrant', 'Vagrantfile'))
-            if DEBUG:
-                print("Copied files and directories from %s to %s" % (cwd, BASE_DIR))
+        copy_dir(cwd, BASE_DIR,
+                 shutil.ignore_patterns('.git*', '.vagrant', 'Vagrantfile'),
+                 args.interactive)
+        if DEBUG:
+            print("Copied files and directories from %s to %s" % (cwd, BASE_DIR))
 
     mysql_user    = OSType.run_cmd(PHP_BASE_CMD +
                                    'echo ISLE\Secrets::DB_USER;"').strip()
@@ -319,7 +352,11 @@ if __name__ == "__main__":
         send_cmd(cur, "DROP DATABASE %s;" % mysql_db_name)
 
     if not args.interactive or ask("Create ISLE's database?"):
-        send_cmd(cur, "CREATE DATABASE %s;" % mysql_db_name)
+        try:
+            send_cmd(cur, "CREATE DATABASE %s;" % mysql_db_name)
+        except Exception as e:
+            if type(e) is MySQLdb.ProgrammingError and e[0] == 1007:
+                print("Database %s already exists." % mysql_db_name)
 
     db.close()		# Done with MySQL's management DB.
 
