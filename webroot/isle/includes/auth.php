@@ -15,6 +15,7 @@
   });
 
   $svc = new ISLE\Service();
+  $just_logged_out = False;
   if (isset($_GET["logout"]))
   {
     echo "<br/>Logging out " . $_SESSION["user"] . "<br/>";
@@ -22,6 +23,7 @@
     $_SESSION['message']['text'] = 'LOGGED OUT';
     unset($_SESSION["user"]);
     $u = array('role' => ISLE\Models\Role::DISABLED);
+    $just_logged_out = True;
   }
 
   $just_logged_in = False;
@@ -30,24 +32,24 @@
     if ($_POST["username"] == Secrets::ADMIN_USER) {
       if ($_POST["password"] == Secrets::ADMIN_PASSWORD) {
         $_SESSION["user"] = Secrets::ADMIN_UID;
-        $_POST["password"] = null;	// *** NEED TO FLAG NO NEW LOGIN.
+        unset($_POST["password"]);	// *** NEED TO FLAG NO NEW LOGIN.
         $just_logged_in = True;
       } else {
         login_error('Thou shalt not hack the ' . Secrets::ADMIN_USER . ' account.');
-        $_POST["password"] = null;	// *** NEED TO FLAG NO NEW LOGIN.
-        exit;
+        unset($_POST["password"]);	// *** NEED TO FLAG NO NEW LOGIN.
+        exit();
       }
     } else {				// Logging into non-admin account:
       try {
         $_SESSION["user"] = ISLE\ActiveDirectory::authenticate_user($_POST["username"],
                                                                     $_POST["password"]);
-        $_POST["password"] = null;	// *** NEED TO FLAG NO NEW LOGIN.
+        unset($_POST["password"]);	// *** NEED TO FLAG NO NEW LOGIN.
         $just_logged_in = True;
       } catch (Exception $e) {
         login_error('Incorrect user name or password.');
         //echo '<br/>' . $e . '<br/>';
-        $_POST["password"] = null;	// *** NOT SURE IF POST IS CLEARED EVERY
-        exit;				// *** TIME. NEED TO FLAG NO NEW LOGIN.
+        unset($_POST["password"]);	// *** NOT SURE IF POST IS CLEARED EVERY
+        exit();				// *** TIME. NEED TO FLAG NO NEW LOGIN.
       }
     }
   }
@@ -61,7 +63,9 @@
     $u = $svc->getAll($userClass, null, null, null, null, $filter);
     if (count($u) == 0 or $u[0]['role'] == ISLE\Models\Role::DISABLED) {
       login_error('User ' . $u[0]["name"] . ' is not authorized for access.');
-      exit;
+      unset($_SESSION["user"]);
+      unset($u);
+      exit();
     } else {
       $u = $u[0];
     }
@@ -70,7 +74,11 @@
   if ($just_logged_in) {
     $just_logged_in = False;
     header("Location: " . $rootdir . "assets");
-    exit;
+    exit();
+  } elseif ($just_logged_out) {
+    $just_logged_out = False;
+    header("Location: " . $rootdir . "login");
+    exit();
   }
 
   function login_error($msg = null) 
@@ -81,5 +89,6 @@
     $_SESSION['message']['type'] = 'alert-error';
     $_SESSION['message']['text'] = $msg;
     header("Location: " . $rootdir . "login");
+    //echo "<b>IN login_error($msg)!!!!!!!</b><br/>";
   }
 ?>

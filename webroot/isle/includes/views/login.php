@@ -1,5 +1,5 @@
 
-<!-- Code taken from:
+<!-- Code inspired by:
 http://www.alessioatzeni.com/blog/login-box-modal-dialog-window-with-css-and-jquery/
 -->
 

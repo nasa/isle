@@ -432,7 +432,7 @@ echo("<br/>get_userid() search result = ");
         // If sid is a packed, binary string:
         if (strncmp($sid, "S-", 2) != 0)
         {
-          $sid = ActiveDirectory::SID_to_string($sid);
+          $sid = ActiveDirectory::SID_to_string($sid);	// Make sid human-readable.
         }
 
         // sid is now a human-readable string:
@@ -449,7 +449,7 @@ echo("<br/>get_userid() search result = ");
             !ActiveDirectory::match_subauth($fields, Secrets::SID_SUBAUTH)) {
           echo("<br/>In SID_to_userid() !!!!!!!!!!!!!!! <br/>");
           var_dump($sid);
-          exit();
+          //exit();
           throw new \UnexpectedValueException('Malformed SID.');
         }
 
