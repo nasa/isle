@@ -326,6 +326,18 @@ if __name__ == "__main__":
         if DEBUG:
             print("Copied files and directories from %s to %s" % (cwd, BASE_DIR))
 
+    if not os.path.exists(SECRETS_FILE) or not os.path.isfile(SECRETS_FILE):
+        print("ERROR: Cannot find %s." % SECRETS_FILE)
+        template = SECRETS_FILE + '.template'
+        if not os.path.exists(template) or not os.path.isfile(template):
+            print("       Cannot find %s either." % template)
+        elif ask("Shall I initialize %s with the template file?" % SECRETS_FILE):
+            shutil.copy(template, SECRETS_FILE)
+        print("Please add security information to %s, then rerun this program." %
+              SECRETS_FILE)
+        print("DO NOT ADD %s TO YOUR SCM!" % SECRETS_FILE)
+        exit(0)
+
     mysql_user    = OSType.run_cmd(PHP_BASE_CMD +
                                    'echo ISLE\Secrets::DB_USER;"').strip()
     mysql_pwd     = OSType.run_cmd(PHP_BASE_CMD +
