@@ -13,7 +13,8 @@
     
     if($action != 'new' && $action != 'edit') {
       // redirect to 404 page if no action exists.
-      throw new ISLE\Exception('The requested assetmodel action is invalid.', ISLE\Exception::FOUROFOUR);
+      throw new ISLE\Exception('The requested assetmodel action is invalid.',
+                               ISLE\Exception::FOUROFOUR);
     }
     
     if($u['role'] <= ISLE\Models\Role::USER) {
@@ -23,7 +24,8 @@
       exit();
     }
     
-    //setup an array or structure that contains the field names. so you only have one place to update if you want to change them
+    // Setup an array or structure that contains the field names, so you only
+    // have one place to update if you want to change them.
     $fieldNames['assetModelForm']['id'] = "hidId";
     $fieldNames['assetModelForm']['desc'] = "txtDesc";
     $fieldNames['assetModelForm']['model'] = "txtModel";
@@ -118,8 +120,10 @@
         if(!isset($_POST['deleteBtn'])) {
  
           // Validate file type
-          if($_FILES[$othFieldNames['attachment']]["error"] == UPLOAD_ERR_OK && $_FILES[$othFieldNames['attachment']]["tmp_name"] != "") {
-            $newfilename = preg_replace('/\.pdf$/', '', $_FILES[$othFieldNames['attachment']]["name"]);
+          if ($_FILES[$othFieldNames['attachment']]["error"] == UPLOAD_ERR_OK and
+              $_FILES[$othFieldNames['attachment']]["tmp_name"] != "") {
+            $newfilename = preg_replace('/\.pdf$/', '',
+                                        $_FILES[$othFieldNames['attachment']]["name"]);
             $newfilename = preg_replace('/\W/', '', $newfilename);
             $userfile_tmp = $_FILES[$othFieldNames['attachment']]["tmp_name"];
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -131,17 +135,19 @@
                 break;
               default:
                 //wrong file type.
-                $valErrors['attachment'] = 'Attachment must be apdf.';
+                $valErrors['attachment'] = 'Attachment must be a PDF.';
                 throw new ISLE\UIException('One or more errors occurred', $valErrors);
             }
             
-            if(! (intval($_POST[$othFieldNames['attachmentNum']]) >= 0) || $newfilename == '') {
+            if(! (intval($_POST[$othFieldNames['attachmentNum']]) >= 0) or
+               $newfilename == '') {
               throw new ISLE\Exception('There was a problem with the attachmentNum or newfilename vars.', ISLE\Exception::UPLOAD);
             }
           }
           
           // Validate file size.
-          if($_FILES[$othFieldNames['attachment']]["error"] == UPLOAD_ERR_INI_SIZE || $_FILES[$othFieldNames['attachment']]["error"] == UPLOAD_ERR_FORM_SIZE) {
+          if($_FILES[$othFieldNames['attachment']]["error"] == UPLOAD_ERR_INI_SIZE or
+             $_FILES[$othFieldNames['attachment']]["error"] == UPLOAD_ERR_FORM_SIZE) {
             $uploadMax = ini_get('upload_max_filesize');
             $postMax = ini_get('post_max_size');
             $maxSize = $uploadMax - $postMax > 0 ? $postMax : $uploadMax;
@@ -150,7 +156,8 @@
           }
 
           // Catch other file upload errors.
-          if($_FILES[$othFieldNames['attachment']]["error"] > 0 && $_FILES[$othFieldNames['attachment']]["error"] != UPLOAD_ERR_NO_FILE) {
+          if($_FILES[$othFieldNames['attachment']]["error"] > 0 and
+             $_FILES[$othFieldNames['attachment']]["error"] != UPLOAD_ERR_NO_FILE) {
             throw new ISLE\Exception('An unknown error occurred while trying to upload an asset attachment file.', ISLE\Exception::UPLOAD);
           }
           
@@ -159,7 +166,8 @@
           if(!isset($_POST[$othFieldNames['removeImage']])) {
             
             // Validate file type.
-            if($_FILES[$othFieldNames['image']]["error"] == UPLOAD_ERR_OK && $_FILES[$othFieldNames['image']]["tmp_name"] != "") {
+            if($_FILES[$othFieldNames['image']]["error"] == UPLOAD_ERR_OK and
+               $_FILES[$othFieldNames['image']]["tmp_name"] != "") {
               $userfile_tmp = $_FILES[$othFieldNames['image']]["tmp_name"];
               $finfo = finfo_open(FILEINFO_MIME_TYPE);
               $mime = finfo_file($finfo, $userfile_tmp);
@@ -182,7 +190,8 @@
             }
             
             // Validate file size.
-            if($_FILES[$othFieldNames['image']]["error"] == UPLOAD_ERR_INI_SIZE || $_FILES[$othFieldNames['image']]["error"] == UPLOAD_ERR_FORM_SIZE) {
+            if($_FILES[$othFieldNames['image']]["error"] == UPLOAD_ERR_INI_SIZE or
+               $_FILES[$othFieldNames['image']]["error"] == UPLOAD_ERR_FORM_SIZE) {
               $uploadMax = ini_get('upload_max_filesize');
               $postMax = ini_get('post_max_size');
               $maxSize = $uploadMax - $postMax > 0 ? $postMax : $uploadMax;
@@ -191,7 +200,8 @@
             }
 
             // Catch other file upload errors.
-            if($_FILES[$othFieldNames['image']]["error"] > 0 && $_FILES[$othFieldNames['image']]["error"] != UPLOAD_ERR_NO_FILE) {
+            if($_FILES[$othFieldNames['image']]["error"] > 0 and
+               $_FILES[$othFieldNames['image']]["error"] != UPLOAD_ERR_NO_FILE) {
               throw new ISLE\Exception('An unknown error occurred while trying to upload an asset model image.', ISLE\Exception::UPLOAD);
             }
           }
@@ -199,8 +209,8 @@
           if(isset($_POST['updateBtn'])) {
             $_SESSION['addedModel'] = $class->id;
 
-            //delete any attachments marked with 'delete'.
-            //the highest num for this model is sent in a hidden field.
+            // Delete any attachments marked with 'delete'.
+            // The highest num for this model is sent in a hidden field.
             foreach($_POST[$othFieldNames['removeAtt']] as $removeAtt) {
               $pat = '/^' . $_SESSION['addedModel'] . '_[1-9][0-9]*\.pdf$/';
               if(preg_match($pat, $removeAtt)) {
@@ -212,7 +222,8 @@
                 $attNum = $tmp[1];
                 
                 if(!unlink($attachment_location . '/' . $removeAtt)) {
-                  throw new ISLE\Exception('Could not delete assetmodel attachment.', ISLE\Exception::UPLOAD);
+                  throw new ISLE\Exception('Could not delete assetmodel attachment.',
+                                           ISLE\Exception::UPLOAD);
                 }
 
                 $class5 = new ISLE\Models\AssetModelAttachment();
@@ -231,7 +242,8 @@
         
         $addedModel = $svc->$svcMethod($class);
 
-        //store the newly added/saved model id in session so it can be used on the new asset form.
+        // Store the newly added/saved model id in session so it can be used
+        // on the new asset form.
         if(isset($_POST['updateBtn']) || isset($_POST['deleteBtn'])) {
           $_SESSION['addedModel'] = $class->id;
         }
@@ -412,9 +424,12 @@
         else {
           // Process Uploaded File
           if($_FILES[$othFieldNames['attachment']]["error"] == UPLOAD_ERR_OK && $_FILES[$othFieldNames['attachment']]["tmp_name"] != "") {
-            //change name of file. only accept pdf. check contents for mime. disable direct access and use a proxy script to provide access. make sure files do not have execute permission.
+            // Change name of file. Only accept pdf. Check contents for mime.
+            // Disable direct access and use a proxy script to provide access.
+            // Make sure files do not have execute permission.
               
-            //the highest num for this model is sent in a hidden field. add 1 to this and use for filename. model_num.pdf
+            // The highest num for this model is sent in a hidden field. Add 1
+            // to this and use for filename. model_num.pdf
             $attachmentNum = intval($_POST[$othFieldNames['attachmentNum']]) + 1;
             $attachment_location .= '/' . $_SESSION['addedModel'] . '_' . $attachmentNum . $fileExt;
             if(!move_uploaded_file($userfile_tmp, $attachment_location)) {
@@ -520,8 +535,14 @@
       $attachments = $svc->getAll($attachmentsClass, null, null, null, null, $filter, $order);
       
       if(!empty($_POST[$fieldNames['assetModelForm']['img']])) {
-        $modelImg['source'] = $rootdir . 'uploads/images/assetmodels/thumbs/' . $itemToEdit . '.' . $_POST[$fieldNames['assetModelForm']['img']] . '?ts=' . strtotime($modelDetails->img_modified);
-        $modelImg['target'] = $rootdir . 'uploads/images/assetmodels/' . $itemToEdit . '.' . $_POST[$fieldNames['assetModelForm']['img']] . '?ts=' . strtotime($modelDetails->img_modified);
+        $modelImg['source'] = $rootdir . 'uploads/images/assetmodels/thumbs/' .
+                              $itemToEdit . '.' .
+                              $_POST[$fieldNames['assetModelForm']['img']] .
+                              '?ts=' . strtotime($modelDetails->img_modified);
+        $modelImg['target'] = $rootdir . 'uploads/images/assetmodels/' .
+                              $itemToEdit . '.' .
+                              $_POST[$fieldNames['assetModelForm']['img']] .
+                              '?ts=' . strtotime($modelDetails->img_modified);
       }
     }
     
@@ -550,20 +571,25 @@
       $models = $svc->getAll($modelClass, null, null, null, null, null, $order);
     }
     
-    $tmpl_headcontent = "<title>ISLE: " . ISLE\Service::getInstanceName() . " - Asset Models</title>";
+    $tmpl_headcontent = "<title>ISLE: " . ISLE\Service::getInstanceName() .
+                        " - Asset Models</title>";
     
     switch($action) {
       case 'new':
-        $tmpl_headcontent = "<title>ISLE: " . ISLE\Service::getInstanceName() . " - Add Asset Model</title>";
+        $tmpl_headcontent = "<title>ISLE: " . ISLE\Service::getInstanceName() .
+                            " - Add Asset Model</title>";
         break;
       case 'edit':
-        $tmpl_headcontent = "<title>ISLE: " . ISLE\Service::getInstanceName() . " - Edit Asset Model " . $itemToEdit . "</title>";
+        $tmpl_headcontent = "<title>ISLE: " . ISLE\Service::getInstanceName() .
+                            " - Edit Asset Model " . $itemToEdit . "</title>";
         break;
     }
     
     $tmpl_headcontent .= $tmpl_headcontent_main;
-    $tmpl_headcontent .= '<link rel="stylesheet" type="text/css" href="' . auto_version($stylesPath . 'views/assets.css') . '" />';
-    $tmpl_headcontent .= '<link rel="stylesheet" type="text/css" href="' . auto_version($stylesPath . 'jquery.tagit.css') . '" />';
+    $tmpl_headcontent .= '<link rel="stylesheet" type="text/css" href="' .
+                         auto_version($stylesPath . 'views/assets.css') . '" />';
+    $tmpl_headcontent .= '<link rel="stylesheet" type="text/css" href="' .
+                         auto_version($stylesPath . 'jquery.tagit.css') . '" />';
     
     $tmpl_javascripts = $tmpl_javascripts_main;
 
