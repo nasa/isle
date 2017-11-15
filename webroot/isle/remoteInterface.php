@@ -353,25 +353,26 @@ _User-Agent:_    '.$userAgent;
           $subject = 'Welcome to ISLE';
 
           //config-todo: set to your url.
-          $message = "
-          <html>
-          <head>
-            <title>Welcome to ISLE</title>
-          </head>
-          <body>
-            <p>Hi " . htmlspecialchars($formVals[$fieldNames['name']]) . ",</p>
-            <p>&nbsp;&nbsp;You've been given an account on the ISLE application." +
-            " You can access the application at the following URL:</p>
-            <p><a href='" . Secrets::get_url() . "'>" . Secrets::get_url() . "</a><br /></p>
-            <p>" . Secrets::ADMIN_NAME . "</p>
-          </body>
-          </html>
-          ";
+          $eol = "\r\n";
+          $message =
+"<html>" . $eol .
+"  <head>" . $eol .
+"    <title>Welcome to ISLE</title>" . $eol .
+"  </head>" . $eol .
+"  <body>" . $eol .
+"    <p>Hi " . htmlspecialchars($formVals[$fieldNames['name']]) . ",</p>" . $eol .
+"    <p>&nbsp;&nbsp;You've been given an account on the ISLE application." .
+"       You can access the application at the following URL:</p>" . $eol .
+"    <p><a href='" . Secrets::get_url() . "'>" . Secrets::get_url() . "</a><br/></p>" .
+"    <p>" . Secrets::ADMIN_NAME . "</p>" . $eol .
+"  </body>" . $eol .
+"</html>";
 
-          $headers  = 'MIME-Version: 1.0' . "\r\n";
-          $headers .= 'Content-Type: text/html; charset=iso-8859-1' . "\r\n";
+          $headers  = 'MIME-Version: 1.0' . $eol;
+          $headers .= 'Content-Type: text/html; charset=iso-8859-1' . $eol;
           //config-todo: set your name and email here.
-          $headers .= 'From: ' . Secrets::ADMIN_NAME . ' <' . Secrets::ADMIN_EMAIL . '>' . "\r\n";
+          $headers .= 'From: ' . Secrets::ADMIN_NAME . ' <' . Secrets::ADMIN_EMAIL .
+                      '>' . $eol;
 
           mail($to, $subject, $message, $headers);
         }
