@@ -2,7 +2,6 @@
     require_once 'includes/config.php';
     use ISLE\Secrets;
     use ISLE\ActiveDirectory;
-//phpinfo();
 
     if(isset($_GET['action'])) {
       throw new ISLE\Exception('Actions are not valid on this page.',
@@ -16,8 +15,8 @@
       exit;
     }
 
-    // setup an array or structure that contains the field names.
-    // so you only have one place to update if you want to change them
+    // Setup an array or structure that contains the field names
+    // so you only have one place to update if you want to change them.
     $fieldNames['id'] = "id";
     $fieldNames['uid'] = "selUID";
     $fieldNames['name'] = "hidName";
@@ -30,12 +29,12 @@
                           'EMPLOYEENUMBER' => Secrets::ADMIN_UID,
                           'PRIMARYEMAIL'   => Secrets::ADMIN_EMAIL );
 
+    // Attributes to return.
     $ldap_attrs = array( "samaccountname", "samaccounttype", "useraccountcontrol",
                          "mail", Secrets::LDAP_UID_ATTR );
-    $extra = "(!(objectCategory=computer))(!(samAccountName=sa_*))(!(samAccountName=priv_*))";
     // Search for an account that is a normal user
     // AND (is not disabled or password is not required).
-    $ldap_expr = ActiveDirectory::user_query_string('*', $extra);
+    $ldap_expr = ActiveDirectory::user_query_string('*', Secrets::EXTRA_ACCT_FILTER);
 
     // Establish connection to server:
     $ldap = new ActiveDirectory();

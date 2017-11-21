@@ -75,7 +75,9 @@ class OSType():
     # \fn __init__
     # \public
     # \brief Constructor: Classifies OS as DEBIAN or REDHAT.
-    # \return
+    # \param [in] redhat	boolean
+    # \param [in] debian	boolean
+    # \return OSType object
     def __init__(self, redhat = False, debian = False):
         global DEBUG
         if redhat and debian:

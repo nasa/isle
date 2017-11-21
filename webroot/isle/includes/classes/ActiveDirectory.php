@@ -1,9 +1,16 @@
 <?php
+   // This file demonstrates the use of the @name tag
+   // @author Pete DiMarco <pete.dimarco.software@gmail.com>
+   // @version 0.1
+
     use ISLE\AuthMode;
     use ISLE\Secrets;
 
     namespace ISLE;
 
+    // @class ActiveDirectory
+    // @public
+    // Manages connections to Active Directory server.
     class ActiveDirectory
     {
       // Active Directory userAccountControl flags:
@@ -30,6 +37,8 @@
       const TRUSTED_TO_AUTH_FOR_DELEGATION	=  0x1000000;
       const PARTIAL_SECRETS_ACCOUNT		= 0x04000000;
 
+      // Since PHP doesn't have reflection, here are the names of the Active
+      // Directory userAccountControl flags:
       public static $UseraccountcontrolFlags = array(
         self::SCRIPT                            => "SCRIPT",
         self::ACCOUNTDISABLE  	        	=> "ACCOUNTDISABLE",
@@ -69,6 +78,8 @@
       const SAM_APP_QUERY_GROUP			= 0x40000001;
       const SAM_ACCOUNT_TYPE_MAX		= 0x7fffffff;
 
+      // Since PHP doesn't have reflection, here are the names of the Active
+      // Directory SAMAccountType values:
       public static $SamaccounttypeValues = array(
         self::SAM_DOMAIN_OBJECT	        	=> "SAM_DOMAIN_OBJECT",
         self::SAM_GROUP_OBJECT	        	=> "SAM_GROUP_OBJECT",
@@ -96,6 +107,8 @@
       const INST_NAMING_CNTXT_CONSTRCTD_W_REPL  = 0x00000010;
       const INST_NAMING_CNTXT_REMOVED_FROM_DSA  = 0x00000020;
 
+      // Since PHP doesn't have reflection, here are the names of the Active
+      // Directory instanceType flags:
       public static $InstancetypeValues = array(
         self::INST_HEAD_OF_NAMING_CNTXT         => "INST_HEAD_OF_NAMING_CNTXT",
         self::INST_REPLICA_NOT_INSTANTIATED     => "INST_REPLICA_NOT_INSTANTIATED",
@@ -105,25 +118,30 @@
         self::INST_NAMING_CNTXT_REMOVED_FROM_DSA=> "INST_NAMING_CNTXT_REMOVED_FROM_DSA",
       );
 
-
       // Stores connection to server:
       private $connection;
       private $username;	// Use distinguishedName, not sAMAccountName?
       private $password;
 
-
-      // Constructor:  *** MAY NOT WORK IF SAMACCOUNTNAME PASSED INSTEAD OF DN: ***
+      // @fn __construct
+      // @public
+      // Constructor: Creates a connection to an AD server.  MAY NOT WORK IF
+      // SAMACCOUNTNAME PASSED INSTEAD OF DN.
+      // @param username	string
+      // @param password	string
+      // @throws UnexpectedValueException
+      // @return ActiveDirectory object
       function __construct($username = null, $password = null)
       {
         if ($username == null) {		// PHP is too stupid to allow class
-          $username = Secrets::LDAP_USER;	// members as function parameter defaults.
+          $username = Secrets::LDAP_USER;	// members as function param defaults.
         }
         if ($password == null) {
           $password = Secrets::LDAP_PASSWORD;
         }
         $this->username = $username;
         $this->password = $password;
-        //echo "username = " . $username . ", password = " . $password . "<br>";
+
         // Establish connection to server:
         if (!$this->connection = ldap_connect(Secrets::LDAP_HOST, Secrets::LDAP_PORT)) {
           throw new \UnexpectedValueException('ldap_connect(' . Secrets::LDAP_HOST .
@@ -154,13 +172,22 @@
       }
 
 
-      // Destructor:
+      // @fn __destruct
+      // @public
+      // Destructor: Closes connection to AD server.
       function __destruct()
       {
         ldap_close($this->connection);		// "logout"
       }
 
 
+      // @fn authenticate_user
+      // @public @static
+      // Logs in user with password.  Returns userid on success.
+      // @param user		string
+      // @param password	string
+      // @throws UnexpectedValueException
+      // @return userid		integer
       public static function authenticate_user($user, $password)
       {
         // NEED TO SANITIZE $user OF WILDCARDS.
@@ -170,11 +197,12 @@
           case AuthMode::USE_DN:		// Full DistinguishedName.
             try {
               $ad = new ActiveDirectory();	// Bind with default credentials.
+              // Search for user's DistinguishedName.
               $query = ActiveDirectory::user_query_string($user);
               $auth_user = $ad->search($query, array("distinguishedname"))[0]["distinguishedname"];
             } catch (Exception $e) {
-              echo("authenticate_user failed: " . ldap_error($ad) . ", " .
-                   $e->getMessage());
+              //echo("authenticate_user failed: " . ldap_error($ad) . ", " .
+              //     $e->getMessage());
               throw $e;
             }
             break;
@@ -186,7 +214,7 @@
 
           case AuthMode::USE_NAME_AT_DOMAIN:	// Windows user@domain.
             if (Secrets::WIN_DOMAIN == null or Secrets::WIN_DOMAIN == "") {
-              echo("authenticate_user failed: Secrets::WIN_DOMAIN is blank.");
+              // echo("authenticate_user failed: Secrets::WIN_DOMAIN is blank.");
               throw new \UnexpectedValueException('Secrets::WIN_DOMAIN is blank.');
             }
             $auth_user = sprintf("%s@%s", $user, Secrets::WIN_DOMAIN);
@@ -194,32 +222,43 @@
 
           case AuthMode::USE_DOMAIN_SLASH_NAME:	// Windows domain\user.
             if (Secrets::WIN_DOMAIN == null or Secrets::WIN_DOMAIN == "") {
-              echo("authenticate_user failed: Secrets::WIN_DOMAIN is blank.");
+              // echo("authenticate_user failed: Secrets::WIN_DOMAIN is blank.");
               throw new \UnexpectedValueException('Secrets::WIN_DOMAIN is blank.');
             }
             $auth_user = sprintf("%s\\%s", Secrets::WIN_DOMAIN, $user);
             break;
 
           default:
-            echo("authenticate_user failed: Secrets::AUTH_MODE = " .
-                 Secrets::AUTH_MODE);
+            // echo("authenticate_user failed: Secrets::AUTH_MODE = " .
+            //      Secrets::AUTH_MODE);
             throw new \UnexpectedValueException('Secrets::AUTH_MODE is illegal value (' .
                                                 Secrets::AUTH_MODE . ')');
             break;
         }
 
         try {
+          // Login the user:
           $ad = new ActiveDirectory($auth_user, $password);
           return $ad->get_userid($user);
 
         } catch (Exception $e) {
-          echo("authenticate_user failed: couldn't get userid, " . $e->getMessage());
+          //echo("authenticate_user failed: couldn't get userid, " . $e->getMessage());
           throw $e;
         }
       }
 
 
+      // @fn user_query_string
+      // @public @static
+      // Creates an LDAP query string.
+      // @param user			string
+      // @param more_restrictions	string
+      // @return query string		string
       public static function user_query_string($user, $more_restrictions = "") {
+        if ($more_restrictions == NULL) {
+          $more_restrictions = "";
+        }
+        // Look for a normal user that is not disabled and must use a password.
         return "(&(sAMAccountType=" .
                    ActiveDirectory::SAM_NORMAL_USER_ACCOUNT . ")" .
                  "(sAMAccountName=" . $user . ")" .
@@ -236,6 +275,13 @@
       }
 
 
+      // @fn get_userid
+      // @public
+      // Gets the user's userid.
+      // @param user		string
+      // @param uid_attr	string
+      // @throws UnexpectedValueException?
+      // @return userid		integer
       // If login fails then throw an exception, else return user ID #.
       public function get_userid($user = NULL, $uid_attr = NULL)
       {
@@ -243,14 +289,15 @@
           $user = $this->username;
         }
 
+        // PHP doesn't allow class members as method parameter defaults.
         if ($uid_attr == NULL) {
           $uid_attr = Secrets::LDAP_UID_ATTR;
         }
 
         $query = ActiveDirectory::user_query_string($user);
-        $result = $this->search($query, Secrets::LDAP_UID_ATTR);
-echo("<br/>get_userid() search result = ");
-        var_dump($result);
+        $result = $this->search($query, $uid_attr);
+        //echo("<br/>get_userid() search result = ");
+        //var_dump($result);
 
         if (Secrets::USE_SID) {				// Convert Windows SID:
           return ActiveDirectory::SID_to_userid($result[0][Secrets::LDAP_UID_ATTR][0]);
@@ -260,20 +307,27 @@ echo("<br/>get_userid() search result = ");
       }
 
 
+      // @fn search
+      // @public
+      // Send search string to AD, then read paged response.
+      // @param user		string
+      // @param password	string
+      // @throws UnexpectedValueException
+      // @return array of strings
       public function search($query, $attrs)
       {
-        if (is_string($attrs)) {
+        if (is_string($attrs)) {	// Ensure attrs is an array.
           $attrs = array($attrs);
         }
 
         $total_result = array();
-        $total_count = 0;
+        $total_count = 0;		// Total number of matches returned.
         $cookie = '';
         do {
           if (!ldap_control_paged_result($this->connection, 1000, false, $cookie)) {
             $msg = "ActiveDirectory#search ldap_control_paged_result failed: " .
                    ldap_error($this->connection);
-            echo($msg);
+            //echo($msg);
             throw new \UnexpectedValueException($msg);
           }
 
