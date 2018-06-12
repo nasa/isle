@@ -1,6 +1,7 @@
 <?php
   session_start();
-  date_default_timezone_set('America/New_York');
+  //use ISLE\Secrets;
+  date_default_timezone_set("America/Los_Angeles");
   define('SERVER_INSTANCE', 'dev');
   define('SERVER_WEBROOT', '');
   require_once realpath(__DIR__ . '/classes/Service.php');

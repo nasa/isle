@@ -49,7 +49,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
         dataType: 'json',
         dataFilter: Util.parseJSON,
         error: function(jqXHR, textStatus, errorThrown) {
-          $('#modelDetails').html('<div class="col1 errorText">I\'m sorry.<br />Something went wrong.<br />Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>');
+          $('#modelDetails').html('<div class="col1 errorText">I\'m sorry.<br />Something went wrong (' + errorThrown + ').<br />Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>');
           return false;
         },
         success: function(data, textStatus, jqXHR) {
@@ -77,7 +77,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
         dataType: 'json',
         dataFilter: Util.parseJSON,
         error: function(jqXHR, textStatus, errorThrown) {
-          $('#modelDetails').html('<div class="col1 errorText">I\'m sorry.<br />Something went wrong.<br />Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>');
+          $('#modelDetails').html('<div class="col1 errorText">I\'m sorry.<br />Something went wrong (' + errorThrown + ').<br />Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>');
           return false;
         },
         success: function(data, textStatus, jqXHR) {
@@ -110,7 +110,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
         dataType: 'json',
         dataFilter: Util.parseJSON,
         error: function(jqXHR, textStatus, errorThrown) {
-          $('#modelDetails').html('<div class="col1 errorText">I\'m sorry.<br />Something went wrong.<br />Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>');
+          $('#modelDetails').html('<div class="col1 errorText">I\'m sorry.<br />Something went wrong (' + errorThrown + ').<br />Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>');
           return false;
         },
         success: function(data, textStatus, jqXHR) {
@@ -139,7 +139,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
         dataType: 'json',
         dataFilter: Util.parseJSON,
         error: function(jqXHR, textStatus, errorThrown) {
-          $('#modelDetails').html('<div class="col1 errorText">I\'m sorry.<br />Something went wrong.<br />Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>');
+          $('#modelDetails').html('<div class="col1 errorText">I\'m sorry.<br />Something went wrong (' + errorThrown + ').<br />Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>');
           return false;
         },
         success: function(data, textStatus, jqXHR) {
@@ -194,7 +194,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
         dataType: 'json',
         dataFilter: Util.parseJSON,
         error: function(jqXHR, textStatus, errorThrown) {
-          $('#modelDetails').html('<div class="col1 errorText">I\'m sorry.<br />Something went wrong.<br />Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>');
+          $('#modelDetails').html('<div class="col1 errorText">I\'m sorry.<br />Something went wrong (' + errorThrown + ').<br />Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>');
           return false;
         },
         success: function(data, textStatus, jqXHR) {
@@ -369,7 +369,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
         }
       }
 
-      NodeMgr.intialize(options);
+      NodeMgr.initialize(options);
 
       $( "#" + options.fieldNames[0].finish ).datepicker({
         showOn: "button",
@@ -406,7 +406,7 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
           }
         }
 
-        NodeMgrLocation.intialize(optionsLocation);
+        NodeMgrLocation.initialize(optionsLocation);
 
         var opts = {
           fieldNames: optionsLocation.fieldNames,

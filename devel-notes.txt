@@ -1,0 +1,111 @@
+		ISLE Database Schema:
+
+17 TABLES:
+
+assets - An instance of an asset_model.
+	id = INT(10)
+	model = INT(10): id of asset_models
+	location = INT(10): id of locations
+	serial = VARCHAR(255)
+	notes = VARCHAR(255)
+
+asset_models -
+	id = INT(10)
+	mfr = INT(10)
+	model = VARCHAR(255)
+	desc = VARCHAR(255)
+	series = VARCHAR(255)
+	url = VARCHAR(255)
+	img = CHAR(3)
+	img_modified = DATETIME
+
+manufacturers -
+	id = INT(10)
+	name = VARCHAR(255)
+	url = VARCHAR(255)
+	parent = INT(10): id of manufacturers <=- UNUSED?
+
+locations -
+	id = INT(10)
+	center = VARCHAR(255)
+	bldg = VARCHAR(255)
+	room = VARCHAR(255)
+
+categories - Hierarchical, used to tag models.
+	id = INT(10)
+	name = VARCHAR(255)
+	parent = INT(10): id of category
+
+attributes - Can be added to model, but not asset.
+	id = INT(10)
+	name = VARCHAR(255)
+	type = INT(10): id of attribute_type
+
+relations - Can connect models, but not assets.
+	id = INT(10)
+	name = VARCHAR(255)
+
+users -
+	id = INT(10)
+	uid = INT(9)
+	name = VARCHAR(255)
+	email = VARCHAR(255)
+	role = INT(10): id of role
+
+asset_attachments - Join table?
+	id = INT(10)
+	name = VARCHAR(255)
+	asset = INT(10): id of assets
+	num = INT(10)
+	extension = VARCHAR(4)
+	
+attribute_types - 
+	id = INT(10)
+	unit = VARCHAR(255)
+	abbr = VARCHAR(255)
+	parent = INT(10): id of attribute_type
+
+asset_model_attributes - Join table of asset_models & attributes
+	id = INT(10)
+	model = INT(10): id of asset_model
+	attribute = INT(10): id of attribute
+	value = VARCHAR(255)
+
+asset_model_categories - Join table of asset_models & categories
+	id = INT(10)
+	model = INT(10): id of asset_model
+	category = INT(10): id of category
+
+asset_model_attachments - Join table of asset_models & ?
+	id = INT(10)
+	name = VARCHAR(255)
+	model = INT(10): id of asset_model
+	num = INT(10)
+	extension = VARCHAR(4)
+
+roles -
+	id = INT(10)
+	name = VARCHAR(255): 1='Disabled', 2='Viewer', 4='User', 8='Contributor', 16='Administrator'
+
+transaction_types -
+	id = INT(10)
+	name = VARCHAR(255): 1='Check-out', 2='Check-in', 3='Restrict', 4='Unrestrict'
+
+transactions -
+	id = INT(10)
+	type = INT(10): id of transaction_type
+	user = INT(10): id of user
+	asset = INT(10): id of asset
+	time = DATETIME
+	location = INT(10): id of location
+	purpose = VARCHAR(255)
+	finish = DATE
+	notes = VARCHAR(255)
+
+asset_model_relations - Join table of asset_models & relations
+	id = INT(10)
+	source = INT(10): id of asset_model
+	relation = INT(10): id of relation
+	target = INT(10): id of asset_model
+
+

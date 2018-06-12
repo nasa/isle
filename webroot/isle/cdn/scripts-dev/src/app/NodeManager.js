@@ -2,7 +2,7 @@ define(["jquery", "./Util"], function($, Util) {
   
   var NodeManager = function() {
     
-    this.intialize = function(options) {
+    this.initialize = function(options) {
       var that = this;
 
       that.props = {};
@@ -313,7 +313,7 @@ define(["jquery", "./Util"], function($, Util) {
             //an error occurred on the server.
             $('#userMessage').remove();
             $('#' + that.props.options.tableId).html('');
-            $('<div id="userMessage" class="alert alert-error" role="alert" aria-label="I\'m sorry. Something went wrong."><a class="close" href="#" role="button" aria-label="Close">&times;</a>I\'m sorry. Something went wrong. Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>').hide().prependTo('.listRight').fadeIn(150);
+            $('<div id="userMessage" class="alert alert-error" role="alert" aria-label="I\'m sorry. Something went wrong."><a class="close" href="#" role="button" aria-label="Close">&times;</a>I\'m sorry. Something went wrong (NodeManager.js:316 ' + errorThrown + '). Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>').hide().prependTo('.listRight').fadeIn(150);
             $('.scroll-pane').addClass('has-message');
             that.props.retVal = '';
             $('#addBtn').removeAttr("disabled");
@@ -337,7 +337,7 @@ define(["jquery", "./Util"], function($, Util) {
               //todo: refactor into a separate method.
               $('#userMessage').remove();
               //todo: make this work for asset details page.
-              $('<div id="userMessage" class="alert alert-error" role="alert" aria-label="I\'m sorry. Something went wrong."><a class="close" href="#" role="button" aria-label="Close">&times;</a>I\'m sorry. Something went wrong. Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>').hide().prependTo('.listRight').fadeIn(150);
+              $('<div id="userMessage" class="alert alert-error" role="alert" aria-label="I\'m sorry. Something went wrong."><a class="close" href="#" role="button" aria-label="Close">&times;</a>I\'m sorry. Something went wrong (NodeManager.js:340 ' + err + ') . Feel free to <a class="feedbackLink" href="#">submit a bug report</a>.</div>').hide().prependTo('.listRight').fadeIn(150);
               $('.scroll-pane').addClass('has-message');
               throw err;
             }
@@ -645,11 +645,15 @@ define(["jquery", "./Util"], function($, Util) {
               dataType: 'json',
               dataFilter: Util.parseJSON,
               error: function(jqXHR, textStatus, errorThrown) {
-                //remove loading text and show and error in its place.
+                //remove loading text and show an error in its place.
                 // enable the buttons
                 $("#" + that.props.options.dialogId + whichModal + " .modal-footer button").removeAttr("disabled");
                 //replace loading text with error text.
-                $("#" + that.props.options.dialogId + whichModal + " .modal-footer .footerRight").addClass('errorText').html('I\'m sorry. Something went wrong.');
+                $("#" + that.props.options.dialogId + whichModal +
+                  " .modal-footer .footerRight")
+                    .addClass('errorText')
+                    .html('I\'m sorry. Something went wrong (NodeManager.js:655 ' +
+                                                errorThrown + ').');
                 
                 var retVal2 = '';
                 return false;
@@ -693,7 +697,7 @@ define(["jquery", "./Util"], function($, Util) {
                   var fi, formField, msgElement;
                   // Integrity Constraint violation
                   if(retVal2 == 'duplicate') {
-                    alert("I'm sorry. Something went wrong.");
+                    alert("I'm sorry. Something went wrong (duplicate).");
                   }
                   // UI Exception
                   else {
@@ -765,7 +769,7 @@ define(["jquery", "./Util"], function($, Util) {
             dataType: 'json',
             dataFilter: Util.parseJSON,
             error: function(jqXHR, textStatus, errorThrown) {
-              alert("I'm sorry. Something went wrong.");
+              alert("I'm sorry. Something went wrong (NodeManager.js:772 " + errorThrown + ").");
               return false;
             },
             success: function(data, textStatus, jqXHR) {
@@ -847,13 +851,16 @@ define(["jquery", "./Util"], function($, Util) {
             dataFilter: Util.parseJSON,
             error: function(jqXHR, textStatus, errorThrown) {
               if(saveMethod == 'delete') {
-                alert("I'm sorry. Something went wrong.");
+                alert("I'm sorry. Something went wrong (saveMethod == delete).");
               }
               else {
                 // enable the buttons
                 $("#" + that.props.options.dialogId + " .modal-footer button").removeAttr("disabled");
                 //replace loading text with error text.
-                $("#" + that.props.options.dialogId + " .modal-footer .footerRight").addClass('errorText').html('I\'m sorry. Something went wrong.');
+                $("#" + that.props.options.dialogId + " .modal-footer .footerRight")
+                    .addClass('errorText')
+                    .html('I\'m sorry. Something went wrong (NodeManager.js:862 ' +
+                          errorThrown + ').');
               }
               var retVal2 = '';
               return false;
@@ -961,7 +968,8 @@ define(["jquery", "./Util"], function($, Util) {
             dataType: 'json',
             dataFilter: Util.parseJSON,
             error: function(jqXHR, textStatus, errorThrown) {
-              alert("I'm sorry. Something went wrong.");
+              alert("I'm sorry. Something went wrong (NodeManager.js:971 " +
+                    errorThrown + ").");
               return false;
             },
             success: function(data, textStatus, jqXHR) {
@@ -998,7 +1006,8 @@ define(["jquery", "./Util"], function($, Util) {
                   dataType: 'json',
                   dataFilter: Util.parseJSON,
                   error: function(jqXHR, textStatus, errorThrown) {
-                    alert("I'm sorry. Something went wrong.");
+                    alert("I'm sorry. Something went wrong (NodeManager.js:1009 " +
+                          errorThrown + ").");
                   },
                   success: options.successFunction
                 });

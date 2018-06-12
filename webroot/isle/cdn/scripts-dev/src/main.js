@@ -22,7 +22,7 @@ require(['jquery', 'bootstrap-dropdown', 'bootstrap-modal', 'bootstrap-alert', '
         dataType: 'json',
         dataFilter: Util.parseJSON,
         error: function(jqXHR, textStatus, errorThrown) {
-          alert("I'm sorry. Something went wrong.");
+          alert("I'm sorry. Something went wrong (" + errorThrown + ").");
           return false;
         },
         success: function(data, textStatus, jqXHR) {
@@ -187,7 +187,8 @@ require(['jquery', 'bootstrap-dropdown', 'bootstrap-modal', 'bootstrap-alert', '
         // enable the buttons
         $("#feedbackDialog .modal-footer button").removeAttr("disabled");
         //replace loading text with error text.
-        $("#feedbackDialog .modal-footer .footerRight").addClass('errorText').html('I\'m sorry. Something went wrong.');
+        $("#feedbackDialog .modal-footer .footerRight").addClass('errorText')
+            .html('I\'m sorry. Something went wrong (' + errorThrown + ').');
         var retVal2 = '';
         return false;
       },

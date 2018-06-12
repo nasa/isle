@@ -21,7 +21,9 @@
     static public function getInstanceName()
     {
       $path = $_SERVER["REQUEST_URI"];
-      $instance = substr($path, (strlen(SERVER_WEBROOT) ? strpos($path, SERVER_WEBROOT) : 0) + strlen(SERVER_WEBROOT));
+      $instance = substr($path, (strlen(SERVER_WEBROOT) ?
+                                 strpos($path, SERVER_WEBROOT) :
+                                 0) + strlen(SERVER_WEBROOT));
       $instance = trim($instance, "/");
       $instance = substr($instance, 0, strpos($instance, "/"));
       return $instance;
@@ -40,7 +42,7 @@
      * -------------------------------------------    -----------------------------
      * add[Node](Node $n)                          -> add(Node $n)
      * delete[Node](int $id)                       -> delete(Node $n)
-     * find[Node]([Node $n [, array $opts = NULL]) -> find(Node $n, [$opts = NULL)
+     * find[Node]([Node $n [, array $opts = NULL]) -> find(Node $n, [$opts = NULL])
      * getAll[Node]s([array $opts = NULL])         -> find(Node $n, [$opts = NULL])
      * get[Node](int $id)                          -> get(Node $n)
      * update[Node](Node $n)                       -> update(Node $n)
@@ -154,7 +156,8 @@
       }
       catch (\Exception $e)
       {
-        throw new Exception('Find failed for '.basename($class), Exception::SERVICE_DP, $e);
+        throw new Exception('Find failed for '.basename($class),
+                            Exception::SERVICE_DP, $e);
       }
     }
     /**
@@ -187,7 +190,8 @@
       }
       if ($ret === FALSE)
       {
-        throw new Exception(basename($class).' id "'.$n->id.'" does not exist.', Exception::SERVICE_DNE);
+        throw new Exception(basename($class).' id "'.$n->id.'" does not exist.',
+                            Exception::SERVICE_DNE);
       }
       return $ret;
     }

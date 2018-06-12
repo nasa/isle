@@ -40,6 +40,6 @@ define(["jquery", "../Util", "../NodeManager"], function($, Util, NodeManager) {
       rowsClickable: rowsClickable
     }
 
-    NodeMgr.intialize(options);
+    NodeMgr.initialize(options);
   });
 });

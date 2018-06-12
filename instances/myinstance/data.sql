@@ -91,4 +91,4 @@ INSERT INTO `myinstance_asset_model_categories` (`id`, `model`, `category`) VALU
 
 -- config-todo: add admin account
 INSERT INTO `myinstance_users` (`id`, `uid`, `name`, `email`, `role`) VALUES
-(1, 111111111, 'admin', 'admin@isle.local', 16);
+(1, 1, 'admin', 'admin@isle.local', 16);

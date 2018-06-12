@@ -13,10 +13,14 @@
     static public function getProperties()
     {
       $props = parent::_getProperties();
-      $props["name"] = array('type' => 'string', 'required' => TRUE, 'validator' => 'validateName', 'label' => 'Name');
-      $props["model"] = array('type' => 'AssetModel', 'required' => TRUE, 'validator' => 'validateId', 'label' => 'Model');
-      $props["num"] = array('type' => 'int', 'required' => TRUE, 'validator' => 'validateInt', 'label' => 'Num');
-      $props["extension"] = array('type' => 'string', 'required' => TRUE, 'validator' => 'validateExt', 'label' => 'Extension');
+      $props["name"] = array('type' => 'string', 'required' => TRUE,
+                             'validator' => 'validateName', 'label' => 'Name');
+      $props["model"] = array('type' => 'AssetModel', 'required' => TRUE,
+                              'validator' => 'validateId', 'label' => 'Model');
+      $props["num"] = array('type' => 'int', 'required' => TRUE,
+                            'validator' => 'validateInt', 'label' => 'Num');
+      $props["extension"] = array('type' => 'string', 'required' => TRUE,
+                                  'validator' => 'validateExt', 'label' => 'Extension');
       return $props;
     }
     

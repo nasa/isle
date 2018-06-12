@@ -1,0 +1,25 @@
+
+ISLE REST API:
+    method=logout
+    method=feedback&type=bug&steps=S		# length of S <= 2000
+    method=feedback&type=feature&description=D[&attachment=?]
+    method=feedback&type=chore&description=D[&attachment=?]
+    method=add&model=User[&chkEmail=EMAIL]
+    method=add:
+    method=update:
+    method=delete:
+        model=Version
+        model=User
+        model=MODEL_NAME
+        model=TransactionCheckout
+        model=TransactionCheckin
+        model=TransactionRestrict
+        model=TransactionUnrestrict
+    method=getAll:
+        model=Version[&filter=?]
+        model=Asset[&filter=?][&tree=TF]
+        model=Transaction[&filter=?][&tree=TF]
+    method=getForeignKeyReferences&nodeId=ID
+
+$_REQUEST contains $_POST
+

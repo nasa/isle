@@ -16,7 +16,8 @@
     
     private $displayOutput;
 
-    public function __construct($message = NULL, $code = self::UNKNOWN, \Exception $previous = NULL, $displayOutput = true)
+    public function __construct($message = NULL, $code = self::UNKNOWN,
+                                \Exception $previous = NULL, $displayOutput = true)
     {
       switch ($code)
       {
