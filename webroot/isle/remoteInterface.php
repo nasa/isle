@@ -9,9 +9,9 @@
     header('Content-type: text/javascript');
     
     //check header for csrfToken, if not valid don't procede.
-    $reqHeaders = getallheaders();
+    $reqHeaders = array_change_key_case(getallheaders());
     if(!isset($reqHeaders['x-csrftoken']) || $reqHeaders['x-csrftoken'] !== $csrfToken) {
-      throw new ISLE\Exception('Possible CSRF attack.', ISLE\Exception::CSRF);
+      throw new ISLE\Exception('Possible CSRF attack!', ISLE\Exception::CSRF);
     }
     
     if($_REQUEST['method'] == 'logout') {
@@ -343,7 +343,7 @@ _User-Agent:_    '.$userAgent;
           $res = $svc->$countMethod($class, $_REQUEST['filter']);
           $ret['count'] = $res['total'];
 
-          $rows = $svc->$_REQUEST['method']($class, $_REQUEST['start'], $_REQUEST['limit'], $_REQUEST['select'], $_REQUEST['distinct'], $_REQUEST['filter'], $_REQUEST['order']);
+          $rows = $svc->{$_REQUEST['method']}($class, $_REQUEST['start'], $_REQUEST['limit'], $_REQUEST['select'], $_REQUEST['distinct'], $_REQUEST['filter'], $_REQUEST['order']);
 
           if(isset($_REQUEST['tree']) && $_REQUEST['tree'] == "true") {
             $items = array();
@@ -375,6 +375,7 @@ _User-Agent:_    '.$userAgent;
     //prefix json, pass a generic message.
     //if it contains sqlstate[23000] send a duplicate message.
     $errorMsg = 'server error';
+    $errorMsg = $e->getMessage();
     if(strpos($e->getMessage(), 'SQLSTATE[23000]')) {
       $errorMsg = 'duplicate';
     }
