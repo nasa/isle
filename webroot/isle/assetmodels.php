@@ -229,7 +229,7 @@
           }
         }
         
-        $addedModel = $svc->$svcMethod($class);
+        $addedModel = $svc->{$svcMethod}($class);
 
         //store the newly added/saved model id in session so it can be used on the new asset form.
         if(isset($_POST['updateBtn']) || isset($_POST['deleteBtn'])) {

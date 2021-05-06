@@ -143,7 +143,7 @@
           } else {
             // Property is a model reference, look up by id
             $f = 'get'.$a["type"];
-            $n->$prop = $this->$f($n->$prop)->id;
+            $n->$prop = $this->{$f}($n->$prop)->id;
           }
         }
       }
@@ -291,7 +291,7 @@
           {
             // Property is a model reference, look up by id
             $f = 'get'.$a["type"];
-            $n->$prop = $this->$f($n->$prop)->id;
+            $n->$prop = $this->{$f}($n->$prop)->id;
           }
         }
       }
